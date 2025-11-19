@@ -107,7 +107,7 @@ export default function GoogleMapComponent() {
   const [addressList, setAddressList] = useState({}); // Card ke liye address
   const [currentAddress, setCurrentAddress] = useState("");
  
-  
+
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     setSelectedDate(today);
@@ -224,6 +224,7 @@ export default function GoogleMapComponent() {
               }`}
             >
               <p><b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}</p>
+              <p><b>Name:</b> {item?.employee?.name}</p>
 
               <p className="mt-2 text-gray-700">
                 <b>Address:</b>{" "}
