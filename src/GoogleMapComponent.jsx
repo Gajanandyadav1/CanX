@@ -1,26 +1,35 @@
+ 
+
+
+
 // import React, { useEffect, useState } from "react";
 // import { useParams } from "react-router-dom";
-// import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+// import { GoogleMap, Marker } from "@react-google-maps/api";
+// import { Base_Url } from "./config";
 
 // const containerStyle = { width: "100%", height: "500px" };
 
 // export default function GoogleMapComponent() {
 //   const { id } = useParams();
-//   const [locationData, setLocationData] = useState([]); 
-//   const [selectedDate, setSelectedDate] = useState(""); // no static date
+//   const [locationData, setLocationData] = useState([]);
+//   const [selectedDate, setSelectedDate] = useState("");
+
+//   // 👉 Auto-set today's date when page opens
+//   useEffect(() => {
+//     const today = new Date().toISOString().slice(0, 10);
+//     setSelectedDate(today);
+//   }, []);
 
 //   const fetchLocation = async () => {
 //     try {
 //       const res = await fetch(
-//         `https://api.canxinternational.in/api/v1/employees/location/${id}?date=${selectedDate}`
+//         `${Base_Url}api/v1/employees/location/${id}?date=${selectedDate}`
 //       );
-
 //       const result = await res.json();
-
 //       if (result.success && result.data.length > 0) {
-//         setLocationData(result.data); // array set
+//         setLocationData(result.data);
 //       } else {
-//         setLocationData([]); // empty array
+//         setLocationData([]);
 //       }
 //     } catch (error) {
 //       console.log("API Error:", error);
@@ -28,16 +37,13 @@
 //   };
 
 //   useEffect(() => {
-//     if (selectedDate) {
-//       fetchLocation();
-//     }
+//     if (selectedDate) fetchLocation();
 //   }, [id, selectedDate]);
 
 //   const defaultCenter = { lat: 28.6139, lng: 77.209 };
 
 //   return (
 //     <>
-//       {/* Date Filter */}
 //       <div className="mb-4">
 //         <label className="font-semibold p-2">Select Date: </label> <br />
 //         <input
@@ -48,7 +54,6 @@
 //         />
 //       </div>
 
-//       {/* Map */}
 //       <GoogleMap
 //         mapContainerStyle={containerStyle}
 //         center={
@@ -68,18 +73,15 @@
 //         )}
 //       </GoogleMap>
 
-//       {/* Cards */}
 //       {selectedDate && locationData.length === 0 && (
-//         <p className="mt-4 text-red-500 font-semibold">
-//           No location found for this date.
-//         </p>
+//         <p className="mt-4 text-red-500 font-semibold">No location found.</p>
 //       )}
 
 //       {locationData.length > 0 && (
 //         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
 //           {locationData.map((item, index) => (
 //             <div key={index} className="p-4 border-2 border-blue-500 rounded shadow">
-//               <p><b>Employee ID:</b> {item.employee}</p>
+          
 //               <p><b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}</p>
 //             </div>
 //           ))}
@@ -88,11 +90,6 @@
 //     </>
 //   );
 // }
-
-
-
-
-
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -105,8 +102,11 @@ export default function GoogleMapComponent() {
   const { id } = useParams();
   const [locationData, setLocationData] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [activeLocation, setActiveLocation] = useState(null);
 
-  // 👉 Auto-set today's date when page opens
+  const [addressList, setAddressList] = useState({}); // Card ke liye address
+  const [currentAddress, setCurrentAddress] = useState("");
+
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     setSelectedDate(today);
@@ -118,19 +118,55 @@ export default function GoogleMapComponent() {
         `${Base_Url}api/v1/employees/location/${id}?date=${selectedDate}`
       );
       const result = await res.json();
+
       if (result.success && result.data.length > 0) {
         setLocationData(result.data);
+
+        // Default first location
+        const first = result.data[0];
+        setActiveLocation(first);
+        fetchAddress(first.latitude, first.longitude, first.deviceTimestamp);
       } else {
         setLocationData([]);
+        setActiveLocation(null);
       }
-    } catch (error) {
-      console.log("API Error:", error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
   useEffect(() => {
     if (selectedDate) fetchLocation();
   }, [id, selectedDate]);
+
+  // 👉 Reverse Geocoding (lat,lng → Address)
+  const fetchAddress = async (lat, lng, key) => {
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyCUf5l0MvNpqpUB2mb9gxz0EcmlybwrpsA`
+      );
+
+      const data = await res.json();
+      const addr =
+        data.results.length > 0
+          ? data.results[0].formatted_address
+          : "Address not found";
+
+      setAddressList((prev) => ({ ...prev, [key]: addr }));
+
+      if (activeLocation && activeLocation.deviceTimestamp === key) {
+        setCurrentAddress(addr);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleCardClick = (item) => {
+    setActiveLocation(item);
+    setCurrentAddress(addressList[item.deviceTimestamp] || "Loading...");
+    fetchAddress(item.latitude, item.longitude, item.deviceTimestamp);
+  };
 
   const defaultCenter = { lat: 28.6139, lng: 77.209 };
 
@@ -146,35 +182,52 @@ export default function GoogleMapComponent() {
         />
       </div>
 
+      {/* MAP */}
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={
-          locationData.length > 0
-            ? { lat: +locationData[0].latitude, lng: +locationData[0].longitude }
+          activeLocation
+            ? { lat: +activeLocation.latitude, lng: +activeLocation.longitude }
             : defaultCenter
         }
-        zoom={14}
+        zoom={15}
       >
-        {locationData.length > 0 && (
+        {activeLocation && (
           <Marker
             position={{
-              lat: +locationData[0].latitude,
-              lng: +locationData[0].longitude,
+              lat: +activeLocation.latitude,
+              lng: +activeLocation.longitude,
             }}
           />
         )}
       </GoogleMap>
 
-      {selectedDate && locationData.length === 0 && (
-        <p className="mt-4 text-red-500 font-semibold">No location found.</p>
+      {/* SELECTED ADDRESS */}
+      {activeLocation && (
+        <p className="mt-3 font-semibold text-blue-600">
+          📍 Address: {currentAddress}
+        </p>
       )}
 
+      {/* CARDS – Only Address Show */}
       {locationData.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           {locationData.map((item, index) => (
-            <div key={index} className="p-4 border-2 border-blue-500 rounded shadow">
-              <p><b>Employee ID:</b> {item.employee}</p>
+            <div
+              key={index}
+              onClick={() => handleCardClick(item)}
+              className={`p-4 border-2 rounded cursor-pointer shadow ${
+                activeLocation?.deviceTimestamp === item.deviceTimestamp
+                  ? "border-red-500"
+                  : "border-blue-500"
+              }`}
+            >
               <p><b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}</p>
+
+              <p className="mt-2 text-gray-700">
+                <b>Address:</b>{" "}
+                {addressList[item.deviceTimestamp] || "Loading..."}
+              </p>
             </div>
           ))}
         </div>

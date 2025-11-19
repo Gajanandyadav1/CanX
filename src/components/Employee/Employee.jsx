@@ -172,10 +172,10 @@ const filteredDepartments = departments.filter((item) =>
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
+            {/* <div className="flex items-center gap-2 text-sm">
               <Building2 className="w-4 h-4 text-gray-400" />
               <span className="text-gray-600">{employee.department}</span>
-            </div>
+            </div> */}
 
             <div className="flex items-center gap-2 text-sm">
               <Mail className="w-4 h-4 text-gray-400" />
