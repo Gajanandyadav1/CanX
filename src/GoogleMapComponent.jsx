@@ -106,7 +106,8 @@ export default function GoogleMapComponent() {
 
   const [addressList, setAddressList] = useState({}); // Card ke liye address
   const [currentAddress, setCurrentAddress] = useState("");
-
+ 
+  
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     setSelectedDate(today);
