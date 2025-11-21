@@ -1,6 +1,7 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-// import { createPageUrl } from "@/utils";
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
+
 import {
   LayoutDashboard,
   Users,
@@ -10,16 +11,14 @@ import {
   CalendarClock,
   BarChart3,
   Settings,
-  Menu,
-  X,
   Building2
 } from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -28,9 +27,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-
- 
-
 
 const navigationItems = [
   { title: "Dashboard", url: "/home", icon: LayoutDashboard },
@@ -41,26 +37,23 @@ const navigationItems = [
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
   { title: "Reports", url: "/report", icon: BarChart3 },
   { title: "Settings", url: "/setting", icon: Settings },
-  { title: "departments", url: "/departments", icon: Building2  }
+  { title: "departments", url: "/departments", icon: Building2 },
+  // { title: "Logout", url: "#", icon: LogOut, color: "text-red-500" }
 ];
-
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [logoutPopup, setLogoutPopup] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setLogoutPopup(false);
+    navigate("/home");
+  };
 
   return (
     <SidebarProvider>
-      <style>{`
-        :root {
-          --primary-blue: #007BFF;
-          --primary-blue-dark: #0056b3;
-          --accent-green: #00C896;
-          --accent-green-dark: #00A578;
-          --bg-light: #F9FAFB;
-          --text-dark: #1F2937;
-          --text-muted: #6B7280;
-        }
-      `}</style>
       <div className="min-h-screen flex w-full bg-[#F9FAFB]">
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-100 p-6">
@@ -74,27 +67,31 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
           </SidebarHeader>
-          
+
           <SidebarContent className="p-3">
             <SidebarGroup>
-              {/* <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
-                Main Menu
-              </SidebarGroupLabel> */}
               <SidebarGroupContent>
                 <SidebarMenu>
                   {navigationItems.map((item) => {
                     const isActive = location.pathname === item.url;
+
                     return (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton 
-                          asChild 
+                        <SidebarMenuButton
+                          asChild
+                          onClick={() => item.title === "Logout" && setLogoutPopup(true)}
                           className={`mb-1 transition-all duration-200 ${
-                            isActive 
-                              ? 'bg-[#007BFF] text-white hover:bg-[#0056b3] shadow-md' 
-                              : 'hover:bg-blue-50 hover:text-[#007BFF]'
+                            item.title === "Logout"
+                              ? `${item.color} hover:bg-red-50`
+                              : isActive
+                              ? "bg-[#007BFF] text-white hover:bg-[#0056b3] shadow-md"
+                              : "hover:bg-blue-50 hover:text-[#007BFF]"
                           }`}
                         >
-                          <Link to={item.url} className="flex items-center gap-3 px-4 py-3 rounded-lg">
+                          <Link
+                            to={item.title === "Logout" ? "#" : item.url}
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg"
+                          >
                             <item.icon className="w-5 h-5" />
                             <span className="font-medium">{item.title}</span>
                           </Link>
@@ -106,6 +103,18 @@ export default function Layout({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+
+
+           {/* BOTTOM LOGOUT BUTTON */}
+          <SidebarFooter className="border-t border-0 p-4">
+            <button
+              onClick={() => setLogoutPopup(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition-all border-0"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium">Logout</span>
+            </button>
+          </SidebarFooter>
 
           <SidebarFooter className="border-t border-gray-100 p-4 bg-gradient-to-r from-blue-50 to-white">
             <div className="text-center">
@@ -121,25 +130,41 @@ export default function Layout({ children, currentPageName }) {
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="lg:hidden hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200" />
                 <div>
-                  <h1 className="text-xl font-bold text-[#007BFF]">{currentPageName || 'Dashboard'}</h1>
+                  <h1 className="text-xl font-bold text-[#007BFF]">{currentPageName || "Dashboard"}</h1>
                   <p className="text-sm text-gray-500">Human Resource Management System</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#007BFF] to-[#0056b3] rounded-lg text-white text-sm font-medium shadow-md">
-                  <Building2 className="w-4 h-4" />
-                  <span>Admin Portal</span>
                 </div>
               </div>
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto bg-[#F9FAFB]">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto bg-[#F9FAFB]">{children}</div>
         </main>
       </div>
+
+      {/* LOGOUT MODAL */}
+      {logoutPopup && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white w-80 p-6 rounded-xl shadow-lg">
+            <h2 className="text-lg font-semibold text-gray-800">Logout?</h2>
+            <p className="text-sm text-gray-500 mt-2">Are you sure you want to logout?</p>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <button
+                onClick={() => setLogoutPopup(false)}
+                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SidebarProvider>
   );
 }
-
