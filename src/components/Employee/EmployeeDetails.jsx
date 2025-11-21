@@ -3,27 +3,40 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Mail, Phone, Calendar, MapPin, CreditCard, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { Image_Url } from "@/config";
 
 export default function EmployeeDetails({ employee, onEdit, onClose }) {
-  const statusColors = {
-    'Active': 'bg-green-100 text-green-700',
-    'On Leave': 'bg-yellow-100 text-yellow-700',
-    'Inactive': 'bg-red-100 text-red-700',
-  };
+ const statusColors = {
+  ACTIVE: "bg-green-500 text-white",
+  INACTIVE: "bg-red-500 text-white",
+  RESIGNED: "bg-yellow-500 text-white",
+};
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start gap-4 pb-6 border-b">
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#007BFF] to-[#0056b3] flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-          {employee.name?.charAt(0) || 'E'}
+          {employee.profile ? (
+    <img
+      src={`${Image_Url}${employee.profile}`}
+      alt={employee.name}
+      className="w-full h-full rounded-full object-cover"
+    />
+  ) : (
+    <span className="text-3xl font-bold text-white">
+      {employee.name?.charAt(0) || "E"}
+    </span>
+  )}
+
         </div>
         <div className="flex-1">
           <h3 className="text-2xl font-bold text-gray-900">{employee.name}</h3>
           <p className="text-gray-600 mt-1">{employee.designation}</p>
-          <Badge className={`${statusColors[employee.status]} mt-2`}>
-            {employee.status}
-          </Badge>
+         <Badge className={`${statusColors[employee.status]} mt-2 px-3 py-1`}>
+  {employee.status}
+</Badge>
+
         </div>
       </div>
 
@@ -53,6 +66,7 @@ export default function EmployeeDetails({ employee, onEdit, onClose }) {
               <p className="text-sm text-gray-500">Base Salary</p>
               <p className="font-medium text-[#007BFF]">₹{employee.baseSalary?.toLocaleString()}</p>
             </div>
+          
           </div>
         </div>
 

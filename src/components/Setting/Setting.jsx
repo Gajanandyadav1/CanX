@@ -1,11 +1,14 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Settings, Save, DollarSign, Clock, Building2 } from "lucide-react";
+import { Base_Url } from "@/config";
+ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
  
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -83,6 +86,73 @@ export default function SettingsPage() {
     }
   };
 
+  const [open, setOpen] = useState(false);
+  const [rate, setRate] = useState("");
+  const [settingData, setSettingData] =useState();
+
+  const settingGetAPI =()=>{
+    try {
+      const requestOptions = {
+  method: "GET",
+  redirect: "follow"
+};
+
+fetch(`${Base_Url}api/v1/settings`, requestOptions)
+  .then((response) => response.json())
+  .then((result) => {
+    if(result.success === true){
+      
+      setSettingData(result.data)
+    }
+  })
+  .catch((error) => console.error(error));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
+
+
+
+
+  const UpdateSettingAPI = () => {
+    try {
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      const raw = JSON.stringify({
+        perKmFare: Number(rate),
+      });
+
+      const requestOptions = {
+        method: "PATCH",
+        headers: myHeaders,
+        body: raw,
+        redirect: "follow",
+      };
+
+      fetch(`${Base_Url}api/v1/settings`, requestOptions)
+        .then((response) => response.json())
+        .then((result) => {
+          if (result.success === true) {
+            toast.success(result.message);
+            settingGetAPI();   // ⭐ Refresh data in card
+            setOpen(false);    // ⭐ Close modal
+            setRate("");       // Reset input
+          } else {
+            toast.error(result.message);
+          }
+        })
+        .catch((error) => console.error(error));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(()=>{
+settingGetAPI();
+  },[])
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -175,10 +245,32 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-600">Company</p>
               <p className="font-bold text-lg text-[#007BFF] mt-1">{formData.company_name}</p>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600">TA Rate</p>
-              <p className="font-bold text-lg text-[#00C896] mt-1">₹{formData.ta_per_km}/km</p>
-            </div>
+   {/* Card */}
+<div className="p-4 bg-green-50 rounded-lg">
+  
+  {/* Text Section */}
+  <div>
+    <p className="text-sm text-gray-600">TA Rate</p>
+    <p className="font-bold text-lg text-[#00C896] mt-1">
+      ₹{settingData?.perKmFare}/km
+    </p>
+  </div>
+
+  {/* Update Button (BOTTOM) */}
+  <div className="mt-4 flex justify-start">
+    <Button
+      onClick={() => {
+        setOpen(true);
+        setRate(settingData.perKmFare); 
+      }}
+      className="bg-[#00C896] text-white w-50"
+    >
+      Update TA Rate
+    </Button>
+  </div>
+
+</div>
+
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-gray-600">Office Hours</p>
               <p className="font-bold text-lg text-purple-600 mt-1">{formData.office_hours} hrs/day</p>
@@ -219,6 +311,52 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+
+
+
+
+
+
+
+
+
+
+
+        {/* Modal */}
+         {/* Modal */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update TA Rate</DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-4">
+            <label className="text-sm font-medium">New TA Rate (₹/km)</label>
+            <input
+              type="number"
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              className="border mt-2 p-2 w-full rounded"
+              placeholder="Enter new rate"
+            />
+          </div>
+
+          <div className="flex justify-end mt-5 gap-3">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+
+            {/* ⭐ Save Button With API */}
+            <Button
+              className="bg-[#00C896] text-white"
+              onClick={UpdateSettingAPI}
+            >
+              Save
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

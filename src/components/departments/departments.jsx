@@ -8,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit, Eye, Building2, Mail, Phone, Calendar } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";   
+import { Dialog,  DialogContent,  DialogHeader,  DialogTitle,}from "@/components/ui/dialog";   
 import DepartmentForm from "./DepartmentForm";
 import { Base_Url } from "@/config";
 
@@ -57,7 +52,7 @@ export default function Departments() {
 
   const fetchDepartments = async () => {
     const res = await fetch(
-      `${Base_Url}api/v1/departments?page=${page}`
+     `${Base_Url}api/v1/departments?page=${page}&name=${search}`
     );
     const data = await res.json();
 
@@ -67,7 +62,7 @@ export default function Departments() {
 
   useEffect(() => {
     fetchDepartments();
-  }, [page]);
+  }, [page, search]);
 
   const filtered = departments.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase())

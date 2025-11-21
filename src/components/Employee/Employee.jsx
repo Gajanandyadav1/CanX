@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,8 +15,11 @@ import {
 } from "@/components/ui/dialog"; 
  import EmployeeForm from "./EmployeeForm";
 import EmployeeDetails from "./EmployeeDetails";
-import { Base_Url } from "@/config";
+import { Base_Url, Image_Url } from "@/config";
 import { Navigate, useNavigate } from "react-router-dom";
+import {    
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Pagination,
   PaginationContent,
@@ -24,6 +28,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { toast } from "sonner";
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,13 +86,14 @@ export default function Employees() {
 const [departments, setDepartments] = useState([]);
 const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
+  const [open, setOpen] = useState(false);
 
 const limit = 6; 
 const [totalPages, setTotalPages] = useState(1);
 
 const DepartmentGet = () => {
   try {
-    fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}`)
+    fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}&name=${search}`)
       .then((response) => response.json())
       .then((result) => {
         setDepartments(result.data.employees);
@@ -101,14 +107,62 @@ const DepartmentGet = () => {
 
 useEffect(() => {
   DepartmentGet();
-}, [currentPage]);
+}, [search, currentPage]);
+
 
 // Search Filter
 const filteredDepartments = departments.filter((item) =>
   item.name?.toLowerCase().includes(search.toLowerCase())
 );
 
+
  
+  const [selectedStatus, setSelectedStatus] = useState(""); 
+const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORTANT
+
+
+ const updateStatus = async () => {
+  if (!selectedStatus) {
+    toast.error("Please select status");
+    return;
+  }
+
+  try {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    const raw = JSON.stringify({
+      id: selectedEmployeeId,   // 👈 ab yahan correct ID jayegi
+      status: selectedStatus,
+    });
+
+    const requestOptions = {
+      method: "PUT",
+      headers: myHeaders,
+      body: raw,
+    };
+
+    const res = await fetch(
+      `${Base_Url}api/v1/employees/status/update`,
+      requestOptions
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success(data.message );
+      DepartmentGet()
+    } else {
+      toast.error(data.message || "Update failed");
+    }
+
+    setOpen(false);
+
+  } catch (error) {
+    toast.error("Something went wrong");
+  }
+};
+
  
   return (
     <div className="p-6 space-y-6">
@@ -133,15 +187,16 @@ const filteredDepartments = departments.filter((item) =>
       {/* Search Bar */}
       <Card className="shadow-lg border-none">
         <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Search by name, ID, or department..."
-             value={search}
-          onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 border-gray-200 focus:ring-2 focus:ring-[#007BFF]"
-            />
-          </div>
+        <div className="relative">
+  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+  <Input
+    placeholder="Search by name, ID, or department..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="pl-10 border-gray-200 focus:ring-2 focus:ring-[#007BFF]"
+  />
+</div>
+
         </CardContent>
       </Card>
 
@@ -152,17 +207,23 @@ const filteredDepartments = departments.filter((item) =>
     <Card key={employee.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 border-none shadow-lg">
       <div className="h-24 bg-gradient-to-r from-[#007BFF] to-[#0056b3] relative">
         <div className="absolute -bottom-12 left-6">
-          <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white">
-            {employee.profile_image ? (
-              <img src={employee.profile_image} alt={employee.full_name} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              <span className="text-3xl font-bold text-[#007BFF]">
-                {employee.name?.charAt(0) || 'E'}
-              </span>
-            )}
-          </div>
+    <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white">
+  {employee.profile ? (
+    <img
+      src={`${Image_Url}${employee.profile}`}
+      alt={employee.name}
+      className="w-full h-full rounded-full object-cover"
+    />
+  ) : (
+    <span className="text-3xl font-bold text-[#007BFF]">
+      {employee.name?.charAt(0) || "E"}
+    </span>
+  )}
+</div>
+
         </div>
       </div>
+
 
       <CardContent className="pt-16 pb-6">
         <div className="space-y-3">
@@ -188,10 +249,18 @@ const filteredDepartments = departments.filter((item) =>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <Badge className={`${statusColors[employee.status]} border px-3 py-1`}>
-              {employee.status}
-            </Badge>
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100 cursor-pointer">
+           <Badge
+  className={`${statusColors[employee.status]} border px-3 py-1`}
+  onClick={() => {
+    setSelectedStatus(employee.status);
+    setSelectedEmployeeId(employee._id);  // 👈 yahi se ID milegi
+    setOpen(true);
+  }}
+>
+  Update Status
+</Badge>
+
 
             <div className="flex gap-2">
               <Button
@@ -322,6 +391,43 @@ const filteredDepartments = departments.filter((item) =>
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+
+
+
+
+
+        
+
+      {/* Modal */}
+     
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Status</DialogTitle>
+          </DialogHeader>
+
+          {/* SELECT OPTION */}
+          <select
+            className="border w-full p-2 rounded"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="">Select Status</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="INACTIVE">INACTIVE</option>
+            <option value="RESIGNED">RESIGNED</option>
+          </select>
+
+          <DialogFooter>
+            <Button onClick={updateStatus}>Save</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

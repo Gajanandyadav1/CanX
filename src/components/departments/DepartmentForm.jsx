@@ -13,6 +13,17 @@ export default function DepartmentForm({ employee, onCancel }) {
     full_name: employee?.full_name || "",
   });
 
+
+ 
+
+
+
+
+
+
+
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -29,9 +40,13 @@ export default function DepartmentForm({ employee, onCancel }) {
       const result = await res.json();
 
       if (result.success === true) {
-       alert("Department Added Successfully!");
+       toast.success(result.message);
+
+       setTimeout(() => {
+         onCancel() 
+       }, 1000);
       } else {
-       alert(result.error.explanation);
+      toast.error(result.error.explanation); 
       }
     } catch (error) {
       toast.error("Server Error!");
@@ -50,7 +65,7 @@ export default function DepartmentForm({ employee, onCancel }) {
           <Input
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            placeholder="John Doe"
+            placeholder="Enter Department Name"
             required
           />
         </div>
