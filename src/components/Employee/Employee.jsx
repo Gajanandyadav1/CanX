@@ -88,26 +88,63 @@ const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
 
-const limit = 6; 
+const limit = 9; 
 const [totalPages, setTotalPages] = useState(1);
 
+// const DepartmentGet = () => {
+//   try {
+//     fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}&name=${search}`)
+//       .then((response) => response.json())
+//       .then((result) => { 
+//         setDepartments(result.data.employees);
+
+//         setTotalPages(result.data.totalPages); // 👈 IMPORTANT FIX
+//       })
+//       .catch((error) => console.error(error));
+//   } catch (error) {
+//     console.log("Error fetching departments:", error);
+//   }
+// };
+
+// ⭐ Employees List API
 const DepartmentGet = () => {
   try {
-    fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}&name=${search}`)
+    fetch(
+      `${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}&name=${search}`
+    )
       .then((response) => response.json())
       .then((result) => {
-        setDepartments(result.data.employees);
-        setTotalPages(result.data.totalPages); // 👈 IMPORTANT FIX
+        if (result.success===true) {
+
+        // ⭐ Always sort new → old
+        let sorted = result.data.employees.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setDepartments(sorted);
+        setTotalPages(result.data.totalPages);
+      }
       })
       .catch((error) => console.error(error));
   } catch (error) {
-    console.log("Error fetching departments:", error);
+    console.log("Error fetching employees:", error);
   }
 };
 
+// ⭐ Auto fetch on page change + search
 useEffect(() => {
   DepartmentGet();
 }, [search, currentPage]);
+
+// ⭐ Listen to “goToFirstPage” event
+useEffect(() => {
+  const goFirst = () => setCurrentPage(1);
+
+  window.addEventListener("goToFirstPage", goFirst);
+
+  return () => window.removeEventListener("goToFirstPage", goFirst);
+}, []);
+
 
 
 // Search Filter
@@ -162,6 +199,14 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
     toast.error("Something went wrong");
   }
 };
+  useEffect(() => {
+    const refreshHandler = () => {
+      DepartmentGet();
+    };
+
+    window.addEventListener("refreshEmployeeList", refreshHandler);
+    return () => window.removeEventListener("refreshEmployeeList", refreshHandler);
+  }, []);
 
  
   return (
@@ -292,6 +337,9 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
     </Card>
   ))}
 </div>
+
+
+
 <Pagination className="mt-6">
   <PaginationContent>
 
@@ -327,11 +375,10 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
 
   </PaginationContent>
 </Pagination>
-
-
-
 {/* EMPTY STATE WHEN NO DATA */}
 {filteredDepartments.length === 0 && (
+
+  <>
   <Card className="shadow-lg border-none mt-6">
     <CardContent className="p-12 text-center">
       <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -341,6 +388,10 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
       </p>
     </CardContent>
   </Card>
+
+
+
+  </>
 )}
 
 
@@ -354,6 +405,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           </DialogHeader>
           <EmployeeForm
             employee={selectedEmployee}
+            
             onSubmit={(data) => {
               if (selectedEmployee) {
                 updateMutation.mutate({ id: selectedEmployee.id, data });

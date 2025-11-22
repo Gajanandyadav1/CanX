@@ -82,6 +82,27 @@ export default function EmployeeForm({ employee, onCancel }) {
     }
   }, [Departments]);
 
+
+
+   const [currentPage, setCurrentPage] = useState(1);
+  const limit = 6;
+  const [totalPages, setTotalPages] = useState(1);
+  const [employee4, setemployee] = useState([]);
+
+
+const DepartmentGet = () => {
+  fetch(`${Base_Url}api/v1/employees`)
+    .then((response) => response.json())
+    .then((result) => {
+      if (result.success === true) {
+        setemployee([...result.data.employees]); 
+         window.dispatchEvent(new Event("refreshEmployeeList"));// 👈 new array → UI refresh
+      }
+    })
+    .catch((error) => console.error(error));
+};
+
+
   // ⭐ Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,12 +143,14 @@ export default function EmployeeForm({ employee, onCancel }) {
         });
 
         const data = await res.json();
-
-        if (data.success) {
-          toast.success(data?.message);
-          onCancel();
-          DepartmentGet();
-        } else {
+ 
+     if (data.success) {
+  toast.success(data?.message);
+  DepartmentGet();
+  window.dispatchEvent(new Event("refreshEmployeeList"));
+  onCancel();
+}
+ else {
           toast.error(data?.error?.explanation);
         }
       } catch (error) {
@@ -167,11 +190,12 @@ export default function EmployeeForm({ employee, onCancel }) {
       });
       const data = await res.json();
 
-      if (data.success === true) {
-        toast.success(data?.message);
-        DepartmentGet();
-        setTimeout(() => onCancel(), 1500);
-      } else {
+     if (data.success === true) {
+  toast.success(data?.message);
+  DepartmentGet(); 
+  onCancel();
+}
+else {
         toast.error(data?.error?.explanation);
       }
     } catch (error) {
@@ -181,40 +205,27 @@ export default function EmployeeForm({ employee, onCancel }) {
     setIsLoading(false);
   };
 
-  // ⭐ Fetch department list
+  // ⭐ Fetch department list 
+
 const fetchDepartments = async () => {
-  const res = await fetch(`${Base_Url}api/v1/departments?page=${page}`);
-  const data = await res.json();
-  setDepartments(data.data.departments);
-};
-useEffect(() => {
-  fetchDepartments();
-}, []);
+  try {
+    const res = await fetch(`${Base_Url}api/v1/departments`);
+    const data = await res.json();
 
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const limit = 6;
-  const [totalPages, setTotalPages] = useState(1);
-
-  const DepartmentGet = () => {
-    try {
-      fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}`)
-        .then((response) => response.json())
-        .then((result) => {
-         if(result.success === true){
-           setDepartments(result.data.employees);
-          setTotalPages(result.data.totalPages);
-         }
-        })
-        .catch((error) => console.error(error));
-    } catch (error) {
-      console.log("Error fetching departments:", error);
+    if (data?.data?.departments) {
+      setDepartments(data.data.departments);
     }
-  };
+  } catch (error) {
+    console.log("Department API Error:", error);
+  }
+};
 
-  useEffect(() => {
-    DepartmentGet();
-  }, [currentPage]);
+
+
+ 
+  useEffect(() => { 
+    fetchDepartments()
+  }, [currentPage,]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -306,31 +317,33 @@ useEffect(() => {
         </div>
 
         {/* ⭐ Department Dropdown (Fixed Width + Name Display) */}
-        <div className="space-y-2">
-          <Label>Department *</Label>
-          <Select
-            value={formData.department}
-            onValueChange={(v) =>
-              setFormData({ ...formData, department: v })
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue>
-                {formData.department
-                  ? getDepartmentName(formData.department)
-                  : "Select department"}
-              </SelectValue>
-            </SelectTrigger>
+   <div className="space-y-2">
+  <Label>Department *</Label>
 
-            <SelectContent>
-              {Departments.map((dept) => (
-                <SelectItem key={dept._id} value={dept._id}>
-                  {dept.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+  <Select
+    value={formData.department}
+    onValueChange={(v) => setFormData({ ...formData, department: v })}
+    onOpenChange={(open) => open && fetchDepartments()}   // 👈 सही तरीका
+  >
+    <SelectTrigger className="w-full">
+      <SelectValue>
+        {formData.department
+          ? Departments.find((d) => d._id === formData.department)?.name
+          : "Select department"}
+      </SelectValue>
+    </SelectTrigger>
+
+    <SelectContent>
+      {Departments.map((dept) => (
+        <SelectItem key={dept._id} value={dept._id}>
+          {dept.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
+
+
 
         {/* Designation */}
         <div className="space-y-2">
@@ -418,30 +431,67 @@ useEffect(() => {
               placeholder="Enter Account Number"
             />
           </div>
+<div className="space-y-2">
+  <Label>IFSC Code</Label>
+  <Input
+    maxLength={11}
+    value={formData.ifsc_code}
+    onChange={(e) => {
+      let value = e.target.value.toUpperCase(); // auto uppercase
 
-          <div className="space-y-2">
-            <Label>IFSC Code</Label>
-            <Input
-              value={formData.ifsc_code}
-              onChange={(e) =>
-                setFormData({ ...formData, ifsc_code: e.target.value })
-              }
-              placeholder="Enter IFSC Code"
-            />
-          </div>
+      // only A-Z and 0-9 allow
+      value = value.replace(/[^A-Z0-9]/g, "");
 
-          <div className="space-y-2">
-            <Label>PAN Number</Label>
-            <Input
-              value={formData.pan_number}
-              maxLength={10}
-              onChange={(e) => {
-                let value = e.target.value.toUpperCase();
-                setFormData({ ...formData, pan_number: value });
-              }}
-              placeholder="Enter PAN Number"
-            />
-          </div>
+      // must follow IFSC pattern partially
+      // First 4 letters
+      if (value.length <= 4) value = value.replace(/[^A-Z]/g, "");
+
+      // 5th char must be 0
+      if (value.length === 5 && value[4] !== "0") {
+        value = value.slice(0, 4) + "0";
+      }
+
+      setFormData({ ...formData, ifsc_code: value });
+    }}
+    placeholder="Enter IFSC Code"
+  />
+</div>
+
+
+        <div className="space-y-2">
+  <Label>PAN Number</Label>
+  <Input
+    maxLength={10}
+    value={formData.pan_number}
+    onChange={(e) => {
+      let value = e.target.value.toUpperCase(); // auto uppercase
+
+      // Only A-Z and 0-9 allow
+      value = value.replace(/[^A-Z0-9]/g, "");
+
+      // First 5 must be letters
+      if (value.length <= 5) value = value.replace(/[^A-Z]/g, "");
+
+      // Next 4 must be digits
+      if (value.length > 5 && value.length <= 9) {
+        const firstFive = value.slice(0, 5);
+        const rest = value.slice(5).replace(/[^0-9]/g, "");
+        value = firstFive + rest;
+      }
+
+      // Last must be letter
+      if (value.length === 10) {
+        const firstNine = value.slice(0, 9);
+        const last = value[9].replace(/[^A-Z]/g, "");
+        value = firstNine + last;
+      }
+
+      setFormData({ ...formData, pan_number: value });
+    }}
+    placeholder="Enter PAN Number"
+  />
+</div>
+
 
           <div className="space-y-2">
             <Label>Emergency Contact</Label>
