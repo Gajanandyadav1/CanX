@@ -131,7 +131,7 @@ export default function GoogleMapComponent() {
       console.log(err);
     }
   };
-
+  
   const fetchAttendance = async () => {
     try {
       const response = await fetch(
