@@ -1,7 +1,3 @@
- 
-
-
-
 // import React, { useEffect, useState } from "react";
 // import { useParams } from "react-router-dom";
 // import { GoogleMap, Marker } from "@react-google-maps/api";
@@ -81,7 +77,7 @@
 //         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
 //           {locationData.map((item, index) => (
 //             <div key={index} className="p-4 border-2 border-blue-500 rounded shadow">
-          
+
 //               <p><b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}</p>
 //             </div>
 //           ))}
@@ -106,7 +102,7 @@ export default function GoogleMapComponent() {
 
   const [addressList, setAddressList] = useState({}); // Card ke liye address
   const [currentAddress, setCurrentAddress] = useState("");
- 
+  const [attendanceData, setAttendanceData] = useState({});
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -135,6 +131,28 @@ export default function GoogleMapComponent() {
       console.log(err);
     }
   };
+
+  const fetchAttendance = async () => {
+    try {
+      const response = await fetch(
+        `${Base_Url}api/v1/attendance/admin/employee/${id}?date=${selectedDate}`
+      );
+      const result = await response.json();
+      if (result.success && Object.keys(result.data).length > 0) {
+        setAttendanceData(result.data);
+      } else {
+        setAttendanceData({});
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  console.log("Attendance Data:", attendanceData);
+
+  useEffect(() => {
+    if (selectedDate) fetchAttendance();
+  }, [id, selectedDate]);
 
   useEffect(() => {
     if (selectedDate) fetchLocation();
@@ -203,6 +221,31 @@ export default function GoogleMapComponent() {
         )}
       </GoogleMap>
 
+      {Object.keys(attendanceData).length > 0 && (
+        <>
+          <div className="mx-3">
+            <p className="mt-3 font-semibold text-blue-600">Attendance :</p>
+
+            <p>
+              {" "}
+              check-in : {new Date(attendanceData.checkInTime).toLocaleString()}
+            </p>
+            {attendanceData.checkOutTime && (
+              <>
+                <p>
+                  {" "}
+                  check-out : {" "}
+                  {new Date(attendanceData.checkOutTime).toLocaleString()}
+                </p>
+                <p>total-distance : {attendanceData.totalDistance} km</p>
+                <p>total-fare: ₹ {attendanceData.totalFare}</p>
+                <p>per-km-fare: ₹ {attendanceData.perKmFare}</p>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
       {/* SELECTED ADDRESS */}
       {activeLocation && (
         <p className="mt-3 font-semibold text-blue-600">
@@ -223,8 +266,12 @@ export default function GoogleMapComponent() {
                   : "border-blue-500"
               }`}
             >
-              <p><b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}</p>
-              <p><b>Name:</b> {item?.employee?.name}</p>
+              <p>
+                <b>Time:</b> {new Date(item.deviceTimestamp).toLocaleString()}
+              </p>
+              <p>
+                <b>Name:</b> {item?.employee?.name}
+              </p>
 
               <p className="mt-2 text-gray-700">
                 <b>Address:</b>{" "}
