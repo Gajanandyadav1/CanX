@@ -11,7 +11,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
+  DialogTitle,DialogDescription
 } from "@/components/ui/dialog"; 
  import EmployeeForm from "./EmployeeForm";
 import EmployeeDetails from "./EmployeeDetails";
@@ -36,6 +36,13 @@ export default function Employees() {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const queryClient = useQueryClient();
+ const [changePassOpen, setChangePassOpen] = useState(false);
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+
+const [showNewPass, setShowNewPass] = useState(false);
+const [showConfirmPass, setShowConfirmPass] = useState(false);
+const [error, setError] = useState(false);
 
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['employees'],
@@ -105,6 +112,8 @@ const [totalPages, setTotalPages] = useState(1);
 //     console.log("Error fetching departments:", error);
 //   }
 // };
+
+
 
 // ⭐ Employees List API
 const DepartmentGet = () => {
@@ -209,6 +218,35 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
   }, []);
 
  
+
+
+
+  const handleChangePassword = async () => {
+  try {
+    const response = await fetch(`${Base_Url}api/v1/employees/password/update`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: selectedEmployeeId,  
+        password: newPass,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success === true) {
+      toast.success(result.message);
+      setChangePassOpen(false);
+      setNewPass("");
+      setConfirmPass("");
+    } else {
+      toast.error(result.message || "Failed to update password");
+    }
+  } catch (error) {
+    toast.error("Server error");
+  }
+};
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -247,96 +285,123 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
 
       {/* Employee Grid */}
  {/* Employee Grid */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {filteredDepartments?.map((employee) => (
-    <Card key={employee.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 border-none shadow-lg">
-      <div className="h-24 bg-gradient-to-r from-[#007BFF] to-[#0056b3] relative">
-        <div className="absolute -bottom-12 left-6">
-    <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white">
-  {employee.profile ? (
-    <img
-      src={`${Image_Url}${employee.profile}`}
-      alt={employee.name}
-      className="w-full h-full rounded-full object-cover"
-    />
-  ) : (
-    <span className="text-3xl font-bold text-[#007BFF]">
-      {employee.name?.charAt(0) || "E"}
-    </span>
-  )}
-</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredDepartments?.map((employee) => (
+          <Card
+            key={employee.id}
+            className="overflow-hidden hover:shadow-xl transition-shadow duration-300 border-none shadow-lg"
+          >
+            {/* 🔵 TOP HEADER */}
+            <div className="h-24 bg-gradient-to-r from-[#007BFF] to-[#0056b3] relative">
 
-        </div>
-      </div>
-
-
-      <CardContent className="pt-16 pb-6">
-        <div className="space-y-3">
-          <div>
-            <h3 className="font-bold text-lg text-gray-900">{employee.name}</h3>
-            <p className="text-sm text-gray-500">{employee.designation}</p>
-          </div>
-
-          <div className="space-y-2">
-            {/* <div className="flex items-center gap-2 text-sm">
-              <Building2 className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">{employee.department}</span>
-            </div> */}
-
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600 truncate">{employee.email}</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">{employee.phone}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100 cursor-pointer">
-           <Badge
-  className={`${statusColors[employee.status]} border px-3 py-1`}
+              {/* ⭐ TOP RIGHT — Change Password Button */}
+              <div className="absolute top-3 right-3">
+               <Button
+  size="sm"
+  variant="secondary"
+  className="bg-white text-black shadow-md"
   onClick={() => {
-    setSelectedStatus(employee.status);
-    setSelectedEmployeeId(employee._id);  // 👈 yahi se ID milegi
-    setOpen(true);
+    setSelectedEmployeeId(employee._id);  // ⭐ yaha id set hogi
+    setChangePassOpen(true);              // modal open
   }}
 >
-  Update Status
-</Badge>
+  Change Password
+</Button>
 
+              </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/google/${employee._id}`)}
-              >
-                view locations
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleView(employee)}
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleEdit(employee)}
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
+              {/* PROFILE IMAGE */}
+              <div className="absolute -bottom-12 left-6">
+                <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white">
+                  {employee.profile ? (
+                    <img
+                      src={`${Image_Url}${employee.profile}`}
+                      alt={employee.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl font-bold text-[#007BFF]">
+                      {employee.name?.charAt(0) || "E"}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ))}
-</div>
+
+            {/* CONTENT */}
+            <CardContent className="pt-16 pb-6">
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900">
+                    {employee.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {employee.designation}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-600 truncate">
+                      {employee.email}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-600">
+                      {employee.phone}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ACTION BUTTONS */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100 cursor-pointer">
+                  <Badge
+                    className={`${statusColors[employee.status]} border px-3 py-1`}
+                    onClick={() => {
+                      setSelectedStatus(employee.status);
+                      setSelectedEmployeeId(employee._id);
+                      setOpen(true);
+                    }}
+                  >
+                    Update Status
+                  </Badge>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate(`/google/${employee._id}`)
+                      }
+                    >
+                      view locations
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(employee)}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(employee)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
 
 
@@ -482,6 +547,97 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+
+
+
+
+
+
+
+
+
+      {/* ⭐ MODAL UI — CHANGE PASSWORD */}
+  <Dialog open={changePassOpen} onOpenChange={setChangePassOpen}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Change Password</DialogTitle>
+      <DialogDescription>
+        Enter a new password for this employee.
+      </DialogDescription>
+    </DialogHeader>
+
+    <div className="space-y-4 pt-2">
+
+      {/* NEW PASSWORD FIELD */}
+      <div className="relative">
+        <Input
+          type={showNewPass ? "text" : "password"}
+          placeholder="New Password"
+          value={newPass}
+          onChange={(e) => setNewPass(e.target.value)}
+          className={error ? "border-red-500" : ""}
+        />
+
+        {/* 👁 Show/Hide Icon */}
+        <span
+          className="absolute right-3 top-2 cursor-pointer text-gray-500"
+          onClick={() => setShowNewPass(!showNewPass)}
+        >
+          {showNewPass ? "🙈" : "👁️"}
+        </span>
+      </div>
+
+      {/* CONFIRM PASSWORD FIELD */}
+      <div className="relative">
+        <Input
+          type={showConfirmPass ? "text" : "password"}
+          placeholder="Confirm Password"
+          value={confirmPass}
+          onChange={(e) => setConfirmPass(e.target.value)}
+          className={error ? "border-red-500" : ""}
+        />
+
+        {/* 👁 Show/Hide Icon */}
+        <span
+          className="absolute right-3 top-2 cursor-pointer text-gray-500"
+          onClick={() => setShowConfirmPass(!showConfirmPass)}
+        >
+          {showConfirmPass ? "🙈" : "👁️"}
+        </span>
+      </div>
+
+      {/* ERROR MESSAGE */}
+      {error && (
+        <p className="text-red-500 text-sm font-medium">
+          Password and Confirm Password do not match
+        </p>
+      )}
+
+      <div className="flex justify-end gap-2 pt-2">
+        <Button variant="outline" onClick={() => setChangePassOpen(false)}>
+          Cancel
+        </Button>
+
+       <Button
+  onClick={() => {
+    if (newPass !== confirmPass) {
+      setError(true);
+      return;
+    }
+    setError(false);
+
+    handleChangePassword(); // ⭐ Final API call
+  }}
+>
+  Update
+</Button>
+
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
     </div>
   );
 }

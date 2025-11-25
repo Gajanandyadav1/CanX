@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
+import logo from "../../assets/canx1.png";
 
 import {
   LayoutDashboard,
@@ -62,8 +63,11 @@ export default function Layout({ children, currentPageName }) {
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-[#007BFF] text-lg">Malhotra IT</h2>
-                <p className="text-xs text-gray-500 font-medium">HRMS Portal</p>
+               <img 
+        src={logo} 
+        alt="Logo" 
+        className=" h-12   w-50" 
+      />
               </div>
             </div>
           </SidebarHeader>
@@ -116,12 +120,12 @@ export default function Layout({ children, currentPageName }) {
             </button>
           </SidebarFooter>
 
-          <SidebarFooter className="border-t border-gray-100 p-4 bg-gradient-to-r from-blue-50 to-white">
+          {/* <SidebarFooter className="border-t border-gray-100 p-4 bg-gradient-to-r from-blue-50 to-white">
             <div className="text-center">
               <p className="text-xs text-gray-600 font-medium">Malhotra IT Innovations</p>
               <p className="text-xs text-gray-400 italic mt-1">Innovating Smarter Digital Workflows</p>
             </div>
-          </SidebarFooter>
+          </SidebarFooter> */}
         </Sidebar>
 
         <main className="flex-1 flex flex-col overflow-hidden">
