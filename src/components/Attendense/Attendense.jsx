@@ -74,7 +74,7 @@ const filteredAttendance =
           <h2 className="text-2xl font-bold text-gray-900">Attendance Tracking</h2>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 demo">
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -92,10 +92,10 @@ const filteredAttendance =
 
       {/* Calendar */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="ps-4">
              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <Card className="border-l-4 border-green-500 shadow-lg">
-          <CardContent className="p-4">
+          <CardContent className="p-2 px-4">
             <p className="text-sm text-gray-600">Present</p>
             <p className="text-3xl font-bold text-green-600">{stats.present}</p>
           </CardContent>
@@ -121,7 +121,7 @@ const filteredAttendance =
       {/* Attendance List */}
       <Card>
   <CardHeader>
-    <CardTitle>
+    <CardTitle className="pt-2">
       {selectedDate
         ? `Attendance - ${format(selectedDate, "dd MMM yyyy")}`
         : "All Attendance Records"}
