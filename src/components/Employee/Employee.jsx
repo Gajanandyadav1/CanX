@@ -319,12 +319,16 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
                       {employee.name?.charAt(0) || "E"}
                     </span>
                   )}
+
+                  
                 </div>
               </div>
+              
             </div>
 
             {/* CONTENT */}
             <CardContent className="pt-16 pb-6">
+              
               <div className="space-y-3">
                 <div>
                   <h3 className="font-bold text-lg text-gray-900">
@@ -364,23 +368,10 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
                     Update Status
                   </Badge>
 
-                      <Badge
-            onClick={() => navigate(`/attendense/${employee._id}`)}
-            className="mt-3 bg-blue-600 text-white px-3 py-1 rounded"
-          >
-            Check Attendance
-          </Badge>
+             
 
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        navigate(`/google/${employee._id}`)
-                      }
-                    >
-                      view locations
-                    </Button>
+                   
 
                     <Button
                       variant="outline"
@@ -398,6 +389,25 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
                       <Edit className="w-4 h-4" />
                     </Button>
                   </div>
+                </div>
+
+                <div style={{display:'flex', justifyContent:'space-between'}}>
+                           <Button
+            onClick={() => navigate(`/attendense/${employee._id}`)}
+            className="bg-blue-600 text-white px-3  "
+          >
+            Check Attendance
+          </Button>
+
+           <Button  
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate(`/google/${employee._id}`)
+                      }
+                    >
+                      view locations
+                    </Button>
                 </div>
               </div>
             </CardContent>
