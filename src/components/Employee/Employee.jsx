@@ -97,25 +97,10 @@ const [currentPage, setCurrentPage] = useState(1);
 
 const limit = 9; 
 const [totalPages, setTotalPages] = useState(1);
-
-// const DepartmentGet = () => {
-//   try {
-//     fetch(`${Base_Url}api/v1/employees?page=${currentPage}&limit=${limit}&name=${search}`)
-//       .then((response) => response.json())
-//       .then((result) => { 
-//         setDepartments(result.data.employees);
-
-//         setTotalPages(result.data.totalPages); // 👈 IMPORTANT FIX
-//       })
-//       .catch((error) => console.error(error));
-//   } catch (error) {
-//     console.log("Error fetching departments:", error);
-//   }
-// };
+ 
 
 
 
-// ⭐ Employees List API
 const DepartmentGet = () => {
   try {
     fetch(
@@ -123,22 +108,32 @@ const DepartmentGet = () => {
     )
       .then((response) => response.json())
       .then((result) => {
-        if (result.success===true) {
 
-        // ⭐ Always sort new → old
+        if (!result.success) return;
+
         let sorted = result.data.employees.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
 
+        // ⭐ Search logic (frontend filter for all pages)
+        if (search.trim() !== "") {
+          sorted = sorted.filter((item) =>
+            item.name.toLowerCase().includes(search.toLowerCase())
+          );
+
+          setCurrentPage(1); // 👈 search pe hamesha page 1
+        }
+
         setDepartments(sorted);
         setTotalPages(result.data.totalPages);
-      }
       })
       .catch((error) => console.error(error));
+      
   } catch (error) {
     console.log("Error fetching employees:", error);
   }
 };
+
 
 // ⭐ Auto fetch on page change + search
 useEffect(() => {
@@ -369,6 +364,13 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
                     Update Status
                   </Badge>
 
+                      <Badge
+            onClick={() => navigate(`/attendense/${employee._id}`)}
+            className="mt-3 bg-blue-600 text-white px-3 py-1 rounded"
+          >
+            Check Attendance
+          </Badge>
+
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -470,7 +472,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           </DialogHeader>
           <EmployeeForm
             employee={selectedEmployee}
-            
+             currentPage={setCurrentPage}
             onSubmit={(data) => {
               if (selectedEmployee) {
                 updateMutation.mutate({ id: selectedEmployee.id, data });

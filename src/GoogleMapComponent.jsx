@@ -255,7 +255,7 @@ export default function GoogleMapComponent() {
 
       {/* CARDS – Only Address Show */}
       {locationData.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-4 mx-4">
           {locationData.map((item, index) => (
             <div
               key={index}

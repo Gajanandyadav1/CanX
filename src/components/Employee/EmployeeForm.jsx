@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Base_Url } from "@/config";
 
-export default function EmployeeForm({ employee, onCancel }) {
+export default function EmployeeForm({ employee, onCancel,currentPage }) {
   const [isLoading, setIsLoading] = useState(false);
 
   // ⭐ Keep at top
@@ -84,7 +84,7 @@ export default function EmployeeForm({ employee, onCancel }) {
 
 
 
-   const [currentPage, setCurrentPage] = useState(1);
+   const [currentPage1, setCurrentPage] = useState(1);
   const limit = 6;
   const [totalPages, setTotalPages] = useState(1);
   const [employee4, setemployee] = useState([]);
@@ -193,6 +193,8 @@ const DepartmentGet = () => {
      if (data.success === true) {
   toast.success(data?.message);
   DepartmentGet(); 
+     setCurrentPage(1);    
+      DepartmentGet(true);
   onCancel();
 }
 else {
