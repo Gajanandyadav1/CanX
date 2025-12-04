@@ -33,7 +33,7 @@ const navigationItems = [
   { title: "Dashboard", url: "/home", icon: LayoutDashboard },
   { title: "Employees", url: "/employee", icon: Users },
   { title: "Departments", url: "/departments", icon: Building2 },
-  { title: "Attendance", url: "/attendense", icon: ClipboardCheck },
+  // { title: "Attendance", url: "/attendense", icon: ClipboardCheck },
   { title: "Travel Tracking", url: "/travel", icon: Map },
   { title: "Payroll", url: "/payroll", icon: Wallet },
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
