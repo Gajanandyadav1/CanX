@@ -194,8 +194,7 @@ export default function LeaveManagement() {
               <option value="Approved">Approve</option>
               <option value="Rejected">Reject</option>
             </select>
-
-
+            
             <textarea
               className="w-full p-2 border rounded h-20"
               placeholder="Write comment..."
