@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
-import { Base_Url } from "@/config";
+import { Base_Url, Image_Url } from "@/config";
 
 const Claims = () => {
   const [claims, setClaims] = useState([]);
@@ -37,7 +37,7 @@ const Claims = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {claims.map((item) => {
             const imgUrl = item.bill
-              ? `https://api.canxinternational.in/uploads/${item.bill}`
+              ? `${Image_Url}${item.bill}`
               : null;
 
             return (
@@ -89,20 +89,23 @@ const Claims = () => {
                   </div>
 
                   {/* TITLE */}
-                  <p className="text-gray-500 text-sm mb-3">{item.title}</p>
+                  {/* <p className="text-gray-500 text-sm mb-3">{item.title}</p> */}
 
                   {/* DETAILS (2–2 per row) */}
-                  <div className="grid grid-cols-2 gap-3 text-gray-700 text-sm">
-                    <p><b>Amount:</b> ₹{item.amount}</p>
-                    <p><b>Phone:</b> {item.employee?.phone}</p>
-                    <p><b>Email:</b> {item.employee?.email}</p>
-                    <p><b>Description:</b> {item.description}</p>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-700 text-sm pt-3">
+  <p><b>Amount:</b> ₹{item.amount}</p>
+  <p><b>Title:</b> {item.title}</p>
+
+  <p><b>Email:</b> {item.employee?.email}</p>
+  <p><b>Phone:</b> {item.employee?.phone}</p>
+</div>
+
+                    <p className="pt-2 text-gray-700"><b>Description:</b> {item.description}</p>
 
                   {/* FOOTER */}
                   <div className="flex justify-between items-center mt-4 pt-4 border-t">
                     <span className="text-gray-500 text-sm">
-                      📅 {item.createdAt.slice(0, 10)}
+                      📅 {item.createdAt.slice(0, 10)} 
                     </span>
 
                     <button className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
