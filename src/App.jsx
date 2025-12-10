@@ -16,6 +16,7 @@ import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import EmployeeLocation from "./components/Employee/EmployeeLocation";
 import { LoadScript } from "@react-google-maps/api";
+import Claims from "./components/Claims/claims";
 
 const App = () => {
   const location = useLocation();
@@ -45,6 +46,7 @@ const App = () => {
             <Route path="/departments" element={<ProtectedRoute> <Departments /> </ProtectedRoute>} />
             <Route path="/employeeLocation" element={<ProtectedRoute> <EmployeeLocation/> </ProtectedRoute>} />
             <Route path="/google/:id"  element={<ProtectedRoute> <GoogleMapComponent /> </ProtectedRoute>} />
+            <Route path="/claims"  element={<ProtectedRoute> <Claims /> </ProtectedRoute>} />
           </Routes>
         </Layout>
       )}

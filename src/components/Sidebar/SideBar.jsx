@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import logo from "../../assets/canx1.png";
 
 import {
@@ -36,6 +36,7 @@ const navigationItems = [
   // { title: "Attendance", url: "/attendense", icon: ClipboardCheck },
   { title: "Travel Tracking", url: "/travel", icon: Map },
   { title: "Payroll", url: "/payroll", icon: Wallet },
+{ title: "Claims", url: "/claims", icon: ShieldCheck },
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
   { title: "Reports", url: "/report", icon: BarChart3 },
   { title: "Settings", url: "/setting", icon: Settings },
