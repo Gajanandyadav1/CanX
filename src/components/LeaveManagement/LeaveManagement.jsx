@@ -12,23 +12,29 @@ export default function LeaveManagement() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+const [isLoading, setIsLoading] = useState(false);
 
   // ⭐ Modal State (Default Approved)
   const [updateData, setUpdateData] = useState({
     leaveId: "", employee: "",  status: "Approved",  response: "", });
 
   // ⭐ Fetch Leaves
-  const getLeaves = async () => {
-    try {
-      const res = await fetch(`${Base_Url}api/v1/leaves/admin?page=${page}`);
-      const data = await res.json();
-      setLeaves(data?.data?.leaves || []);
-      setTotalPages(data?.data?.totalPages || 1);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+const getLeaves = async () => {
+  try {
+    setIsLoading(true); // 🔥 Loading start
 
+    const res = await fetch(`${Base_Url}api/v1/leaves/admin?page=${page}`);
+    const data = await res.json();
+
+    setLeaves(data?.data?.leaves || []);
+    setTotalPages(data?.data?.totalPages || 1);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setIsLoading(false); // 🔥 Loading end
+  }
+};
+ 
 
 
   // ⭐ Update Status API (fallback Approved)
@@ -80,104 +86,130 @@ export default function LeaveManagement() {
       </div>
 
       {/* ---- Leave Cards ---- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {leaves.map((leave) => (
-          <Card
-            key={leave._id}
-            className={`rounded-xl py-1 border-2 shadow-md hover:shadow-xl transition cursor-pointer ${
-              leave.status === "Approved"
-                ? "border-green-500"
-                : leave.status === "Rejected"
-                ? "border-red-500"
-                : "border-yellow-500"
-            }`}
-          >
-            <CardContent className="p-6">
-              
-              {/* Header */}
-              <div className="flex justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
-                    {leave.employee?.name?.charAt(0).toUpperCase()}
-                  </div>
+    {isLoading && (
+  <div className="flex justify-center items-center py-10">
+    <p className="text-blue-600 font-semibold">Loading...</p>
+  </div>
+)}
 
-                  <div>
-                    <p className="font-semibold text-lg">{leave.employee?.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(leave.startDate).toLocaleDateString()} →{" "}
-                      {new Date(leave.endDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
+{/* ---- Leave Cards ---- */}
+{!isLoading && leaves.length === 0 && (
+  <div className="flex justify-center items-center py-10">
+    <p className="text-gray-500 font-semibold">No Data Found</p>
+  </div>
+)}
 
-                {leave.status === "Approved" && <Check className="text-green-600" />}
-                {leave.status === "Rejected" && <X className="text-red-600" />}
-                {leave.status === "Pending" && <CalendarClock className="text-yellow-500" />}
+{!isLoading && leaves.length > 0 && (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {leaves.map((leave) => (
+      <Card
+        key={leave._id}
+        className={`rounded-xl py-1 border-2 shadow-md hover:shadow-xl transition cursor-pointer ${
+          leave.status === "Approved"
+            ? "border-green-500"
+            : leave.status === "Rejected"
+            ? "border-red-500"
+            : "border-yellow-500"
+        }`}
+      >
+        <CardContent className="p-6">
+          {/* Header */}
+          <div className="flex justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                {leave.employee?.name?.charAt(0).toUpperCase()}
               </div>
 
-              {/* Body */}
-              <div className="mt-4 ml-16 space-y-2">
-                <p className="text-sm"><strong>Type:</strong> {leave.type}</p>
-                <p className="text-sm"><strong>Reason:</strong> {leave.reason}</p>
+              <div>
+                <p className="font-semibold text-lg">{leave.employee?.name}</p>
+                <p className="text-sm text-gray-500">
+                  {new Date(leave.startDate).toLocaleDateString()} →{" "}
+                  {new Date(leave.endDate).toLocaleDateString()}
+                </p>
               </div>
+            </div>
 
-              {/* Status + Button */}
-              <div className="ml-16 mt-4 flex items-center gap-4">
+            {leave.status === "Approved" && <Check className="text-green-600" />}
+            {leave.status === "Rejected" && <X className="text-red-600" />}
+            {leave.status === "Pending" && (
+              <CalendarClock className="text-yellow-500" />
+            )}
+          </div>
 
-                <span
-                  className={`px-3 py-1 text-xs rounded font-bold ${
-                    leave.status === "Approved"
-                      ? "bg-green-200 text-green-700"
-                      : leave.status === "Rejected"
-                      ? "bg-red-200 text-red-700"
-                      : "bg-yellow-200 text-yellow-700"
-                  }`}
-                >
-                  {leave.status}
-                </span>
+          {/* Body */}
+          <div className="mt-4 ml-16 space-y-2">
+            <p className="text-sm">
+              <strong>Type:</strong> {leave.type}
+            </p>
+            <p className="text-sm">
+              <strong>Reason:</strong> {leave.reason}
+            </p>
+          </div>
 
-                {/* Only Pending show Change Button */}
-                {leave.status === "Pending" && (
-                  <button
-                    onClick={() => {
-                      setUpdateData({
-                        leaveId: leave._id,
-                        employee: leave.employee._id,
-                        status: "Approved", // ALWAYS DEFAULT
-                        response: "",
-                      });
-                      setShowModal(true);
-                    }}
-                    className="text-xs bg-blue-600 text-white rounded px-3 py-1 hover:bg-blue-700"
-                  >
-                    Change Status
-                  </button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+          {/* Status + Button */}
+          <div className="ml-16 mt-4 flex items-center gap-4">
+            <span
+              className={`px-3 py-1 text-xs rounded font-bold ${
+                leave.status === "Approved"
+                  ? "bg-green-200 text-green-700"
+                  : leave.status === "Rejected"
+                  ? "bg-red-200 text-red-700"
+                  : "bg-yellow-200 text-yellow-700"
+              }`}
+            >
+              {leave.status}
+            </span>
+
+            {leave.status === "Pending" && (
+              <button
+                onClick={() => {
+                  setUpdateData({
+                    leaveId: leave._id,
+                    employee: leave.employee._id,
+                    status: "Approved",
+                    response: "",
+                  });
+                  setShowModal(true);
+                }}
+                className="text-xs bg-blue-600 text-white rounded px-3 py-1 hover:bg-blue-700"
+              >
+                Change Status
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+)}
+
 
 
       {/* ---- Pagination ---- */}
-      <div className="flex justify-center gap-2 mt-6">
-        <Button disabled={page === 1} onClick={() => setPage(page - 1)}>Prev</Button>
+     {!isLoading && leaves.length > 0 && (
+  <div className="flex justify-center gap-2 mt-6">
+    <Button disabled={page === 1} onClick={() => setPage(page - 1)}>
+      Prev
+    </Button>
 
-        {[...Array(totalPages)].map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            className={`w-10 h-10 rounded border ${
-              page === i + 1 ? "bg-blue-600 text-white" : "hover:bg-gray-100"
-            }`}
-          >
-            {i + 1}
-          </button>
-        ))}
+    {[...Array(totalPages)].map((_, i) => (
+      <button
+        key={i}
+        onClick={() => setPage(i + 1)}
+        className={`w-10 h-10 rounded border ${
+          page === i + 1 ? "bg-blue-600 text-white" : "hover:bg-gray-100"
+        }`}
+      >
+        {i + 1}
+      </button>
+    ))}
 
-        <Button disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</Button>
-      </div>
+    <Button disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+      Next
+    </Button>
+  </div>
+)}
+
 
 
       {/* ---- Modal ---- */}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, ShieldCheck } from "lucide-react";
-import logo from "../../assets/canx1.png";
+import logo from "../../../public/canx.png";
 
 import {
   LayoutDashboard,
@@ -58,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#F9FAFB]">
         <Sidebar className="border-r border-gray-200 bg-white">
-          <SidebarHeader className="border-b border-gray-100 p-6">
+          <SidebarHeader className="border-b border-gray-100 p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#007BFF] to-[#0056b3] rounded-lg flex items-center justify-center shadow-lg">
                 <Building2 className="w-6 h-6 text-white" />
@@ -67,7 +67,7 @@ export default function Layout({ children, currentPageName }) {
                <img 
         src={logo} 
         alt="Logo" 
-        className=" h-12   w-50" 
+        className="    w-50" 
       />
               </div>
             </div>

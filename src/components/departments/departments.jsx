@@ -107,39 +107,62 @@ export default function Departments() {
       </Card>
 
       {/* Employee Grid */}
-   <div className="p-6 space-y-6">
+<div className="p-6 space-y-6">
 
-      
-
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((item) => (
-          <Card key={item._id} className="shadow-md border">
-            <CardContent className="p-6">
-              <h2 className="font-semibold text-xl">{item.name}</h2>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      <Pagination className="mt-4">
-        <PaginationContent>
-          <PaginationItem>
-            {page > 1 && <PaginationPrevious onClick={() => setPage(page - 1)} />}
-          </PaginationItem>
-
-          <PaginationItem className="px-3 font-medium">
-            {page} / {totalPages}
-          </PaginationItem>
-
-          <PaginationItem>
-            {page < totalPages && <PaginationNext onClick={() => setPage(page + 1)} />}
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-
+  {/* Loading */}
+  {isLoading && (
+    <div className="flex justify-center items-center py-10">
+      <p className="text-blue-600 font-semibold">Loading...</p>
     </div>
+  )}
+
+  {/* No Data */}
+  {!isLoading && filtered.length === 0 && (
+    <div className="flex justify-center items-center py-10">
+      <p className="text-gray-500 font-semibold">No Data Found</p>
+    </div>
+  )}
+
+  {/* Cards */}
+  {!isLoading && filtered.length > 0 && (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filtered.map((item) => (
+        <Card key={item._id} className="shadow-md border">
+          <CardContent className="p-6">
+            <h2 className="font-semibold text-xl">{item.name}</h2>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )}
+
+  {/* Pagination — hide when no data */}
+  {!isLoading && filtered.length > 0 && (
+    <Pagination className="mt-4">
+      <PaginationContent>
+        
+        <PaginationItem>
+          {page > 1 && (
+            <PaginationPrevious onClick={() => setPage(page - 1)} />
+          )}
+        </PaginationItem>
+
+        <PaginationItem className="px-3 font-medium">
+          {page} / {totalPages}
+        </PaginationItem>
+
+        <PaginationItem>
+          {page < totalPages && (
+            <PaginationNext onClick={() => setPage(page + 1)} />
+          )}
+        </PaginationItem>
+
+      </PaginationContent>
+    </Pagination>
+  )}
+
+</div>
+
 
       {/* Add/Edit Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
