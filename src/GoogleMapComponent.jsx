@@ -320,13 +320,13 @@ const [activeTab, setActiveTab] = useState("online");
       {/* SELECTED ADDRESS */}
       {activeLocation && (
         <p className="mt-3 font-semibold text-blue-600  ps-3" >
-          📍 Address: {currentAddress}
+          📍 Address: {currentAddress} 
         </p>
       )}
 
       {/* CARDS – Only Address Show */}
       {locationData.length > 0 ? (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-4 mx-4">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-4 mx-4">
     {locationData.map((item, index) => (
       <div
         key={index}
