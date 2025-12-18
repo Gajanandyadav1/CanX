@@ -80,9 +80,9 @@ const getLeaves = async () => {
       {/* ---- Header ---- */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Leave Management</h2>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        {/* <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" /> Add Leave Request
-        </Button>
+        </Button> */}
       </div>
 
       {/* ---- Leave Cards ---- */}
