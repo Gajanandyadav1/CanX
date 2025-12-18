@@ -250,7 +250,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           <h2 className="text-2xl font-bold text-gray-900">Employee Management</h2>
           <p className="text-gray-500 mt-1">Manage your workforce efficiently</p>
         </div>
-        <Button
+        {/* <Button
           onClick={() => {
             setSelectedEmployee(null);
             setShowAddDialog(true);
@@ -259,7 +259,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Employee
-        </Button>
+        </Button> */}
       </div>
 
       {/* Search Bar */}
@@ -359,14 +359,23 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 cursor-pointer">
                   <Badge
                     className={`${statusColors[employee.status]} border px-3 py-1`}
-                    onClick={() => {
-                      setSelectedStatus(employee.status);
-                      setSelectedEmployeeId(employee._id);
-                      setOpen(true);
+                    onClick={() => { setSelectedStatus(employee.status); 
+                       setSelectedEmployeeId(employee._id); setOpen(true);
                     }}
                   >
                     Update Status
                   </Badge>
+                <Badge
+  className={`${statusColors[employee.status]} border px-3 py-1 cursor-pointer`}
+  onClick={() => {
+    
+  navigate(`/visit/${employee._id}`);
+}}
+
+>
+  View Visits
+</Badge>
+
 
              
 

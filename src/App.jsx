@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import EmployeeLocation from "./components/Employee/EmployeeLocation";
 import { LoadScript } from "@react-google-maps/api";  
 import Claims from "./components/Claims/Claims";
+import Visits from "./Visits/Visits";
 
 const App = () => {
   const location = useLocation();
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/employeeLocation" element={<ProtectedRoute> <EmployeeLocation/> </ProtectedRoute>} />
             <Route path="/google/:id"  element={<ProtectedRoute> <GoogleMapComponent /> </ProtectedRoute>} />
             <Route path="/claims"  element={<ProtectedRoute> <Claims/> </ProtectedRoute>} />
+            <Route path="/visit/:employeeId"  element={<ProtectedRoute> <Visits/> </ProtectedRoute>} />
           </Routes>
         </Layout>
       )}
