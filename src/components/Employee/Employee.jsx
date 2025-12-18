@@ -250,7 +250,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           <h2 className="text-2xl font-bold text-gray-900">Employee Management</h2>
           <p className="text-gray-500 mt-1">Manage your workforce efficiently</p>
         </div>
-        {/* <Button
+         <Button
           onClick={() => {
             setSelectedEmployee(null);
             setShowAddDialog(true);
@@ -259,7 +259,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Employee
-        </Button> */}
+        </Button>  
       </div>
 
       {/* Search Bar */}
