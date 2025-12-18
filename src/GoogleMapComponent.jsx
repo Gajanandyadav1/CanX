@@ -292,30 +292,47 @@ const [activeTab, setActiveTab] = useState("online");
   {activeTab === "online" && (
     <div className="animate-fade   ">
     
+      
       {Object.keys(attendanceData).length > 0 && (
-        <>
-          <div className="mx-3  ps-3">
-            <p className="mt-3 font-semibold text-blue-600">Attendance :</p>
+  <div className="mx-3 ps-3">
+    <p className="mt-3 font-semibold text-blue-600">
+      Attendance :
+    </p>
 
-            <p>
-              {" "}
-              check-in : {new Date(attendanceData.checkInTime).toLocaleString()}
-            </p>
-            {attendanceData.checkOutTime && (
-              <>
-                <p>
-                  {" "}
-                  check-out : {" "}
-                  {new Date(attendanceData.checkOutTime).toLocaleString()}
-                </p>
-                <p>total-distance : {attendanceData.totalDistance} km</p>
-                <p>total-fare: ₹ {attendanceData.totalFare}</p>
-                <p>per-km-fare: ₹ {attendanceData.perKmFare}</p>
-              </>
-            )}
-          </div>
-        </>
-      )}
+    <p>
+      Check-in :
+      {" "}
+      {new Date(attendanceData.checkInTime).toLocaleString()}
+    </p>
+
+    {/* CHECK-OUT (only if available) */}
+    {/* {attendanceData.checkOutTime ? (
+      <p>
+        Check-out :
+        {" "}
+        {new Date(attendanceData.checkOutTime).toLocaleString()}
+      </p>
+    ) : (
+      <p>
+        Check-out : —
+      </p>
+    )} */}
+
+    {/* ALWAYS SHOW (even if 0) */}
+    <p>
+      Total Distance : {attendanceData.totalDistance} km
+    </p>
+
+    <p>
+      Total Fare : ₹ {attendanceData.totalFare}
+    </p>
+
+    <p>
+      Per Km Fare : ₹ {attendanceData.perKmFare}
+    </p>
+  </div>
+)}
+
 
       {/* SELECTED ADDRESS */}
       {activeLocation && (
