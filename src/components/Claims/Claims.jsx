@@ -57,7 +57,7 @@ const [reason, setReason] = useState("");
     });
 
     const res = await fetch(
-      "https://api.canxinternational.in/api/v1/claims",
+      `${Base_Url}api/v1/claims`,
       {
         method: "PATCH",
         headers: myHeaders,
@@ -90,10 +90,10 @@ const [reason, setReason] = useState("");
 
   return (
     <div className="p-5">
- <Toaster position="top-right" />      {/* STATUS SELECT */}
+    <Toaster position="top-right" />      {/* STATUS SELECT */}
      <div className="mb-6 flex justify-start">
-  <div className="relative w-48">
-    <select
+      <div className="relative w-48">
+        <select
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value)}
       className="w-full appearance-none rounded-xl border border-gray-300 
@@ -109,9 +109,7 @@ const [reason, setReason] = useState("");
     </select>
 
     {/* DOWN ARROW */}
-    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-      ▼
-    </span>
+    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">▼</span>
   </div>
 </div>
 
@@ -161,8 +159,7 @@ const [reason, setReason] = useState("");
 
                     <span
                       className={`px-3 py-1 text-xs rounded-full
-                        ${
-                          item.status === "APPROVED"
+                        ${ item.status === "APPROVED"
                             ? "bg-green-100 text-green-700"
                             : item.status === "REJECTED"
                             ? "bg-red-100 text-red-700"

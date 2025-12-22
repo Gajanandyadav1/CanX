@@ -296,8 +296,7 @@ const [activeTab, setActiveTab] = useState("online");
       {Object.keys(attendanceData).length > 0 && (
   <div className="mx-3 ps-3">
     <p className="mt-3 font-semibold text-blue-600">
-      Attendance :
-    </p>
+      Attendance :  </p>
 
     <p>
       Check-in :
