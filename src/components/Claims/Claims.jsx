@@ -30,7 +30,8 @@ const [reason, setReason] = useState("");
   useEffect(() => {
     getClaims();
   }, [page]);
-
+ 
+  
   // ---------- FILTER LOGIC ----------
   const filteredClaims =
     statusFilter === "ALL"
