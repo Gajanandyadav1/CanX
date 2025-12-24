@@ -49,7 +49,7 @@ const [reason, setReason] = useState("");
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-
+  
     const raw = JSON.stringify({
       employee: selectedClaim?.employee?._id,
       claimId: selectedClaim?._id,
@@ -69,17 +69,16 @@ const [reason, setReason] = useState("");
     const result = await res.json();
 
      if (res.ok) {
-      toast.success(result?.message  );
+      toast.success(result?.message);
       getClaims()
     } else {
-      toast.error(result?.message  );
+      toast.error(result?.message);
     }
 
     // reset + close
     setOpenModal(false);
     setNewStatus("");
-    setReason("");
-
+    setReason(""); 
     // refresh list
     getClaims();
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +12,12 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { format, getDaysInMonth } from "date-fns";
+import { toast, Toaster } from "sonner";
 
-export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
+export default function PayrollForm({ onCancel }) {
   /* ================= STATE ================= */
   const [employees, setEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     employee_id: "",
@@ -39,8 +42,7 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
     fetch("https://api.canxinternational.in/api/v1/employees")
       .then((res) => res.json())
       .then((json) => {
-        const list =
-          json?.data?.employees || json?.data || [];
+        const list = json?.data?.employees || json?.data || [];
         setEmployees(list);
       })
       .catch(() => setEmployees([]));
@@ -70,9 +72,7 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
         "https://api.canxinternational.in/api/v1/attendance/month/salary/slip/meta",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             employeeId: formData.employee_id,
             month: Number(month),
@@ -83,7 +83,6 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
 
       const result = await res.json();
 
-      // ✅ CORRECT MAPPING (data.data)
       setFormData((prev) => ({
         ...prev,
         present_days: result?.data?.totalPresentDays || 0,
@@ -119,14 +118,58 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
   ]);
 
   /* ================= SUBMIT ================= */
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+
+  try {
+    const payload = {
+      employeeId: formData.employee_id,
+      month: Number(formData.month.split("-")[1]),
+      year: Number(formData.month.split("-")[0]),
+      bonus: formData.bonus,
+      deductions: formData.deductions,
+    };
+
+    const res = await fetch(
+      "https://api.canxinternational.in/api/v1/slips",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await res.json();
+
+    // ❌ if API failed
+    if (!res.ok) {
+      throw new Error(
+        data?.error?.explanation || data?.message || "Something went wrong"
+      );
+    }
+
+    // ✅ SUCCESS
+    toast.success(data?.message || "Payroll generated successfully");
+
+    // ✅ 1 sec delay then close
+    setTimeout(() => {
+      onCancel();
+    }, 1000);
+  } catch (error) {
+    // ✅ API ERROR MESSAGE SHOW HERE
+    toast.error(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   /* ================= UI ================= */
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 ">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* TOASTER */}
+      <Toaster position="top-right" />
+
       {/* Employee */}
       <div className="space-y-2">
         <Label>Employee *</Label>
@@ -147,8 +190,8 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
         </Select>
       </div>
 
-      {/* Salary Month */}
-      <div className="space-y-2 w-50">
+      {/* Month */}
+      <div className="space-y-2">
         <Label>Salary Month *</Label>
         <Input
           type="month"
@@ -156,28 +199,25 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
           onChange={(e) => {
             const value = e.target.value;
             setFormData({ ...formData, month: value });
-            getSalaryMeta(value); // ✅ API CALL
+            getSalaryMeta(value);
           }}
         />
       </div>
 
-      {/* META INFO (EXISTING UI) */}
+      {/* Meta */}
       <div className="grid grid-cols-2 gap-3 border-t pt-4">
         <div className="bg-gray-50 p-3 rounded">
           <p>Present Days</p>
           <b>{formData.present_days}</b>
         </div>
-
         <div className="bg-gray-50 p-3 rounded">
           <p>Leave Days</p>
           <b>{formData.leave_days}</b>
         </div>
-
         <div className="bg-gray-50 p-3 rounded">
-          <p> Total Days In Month</p>
+          <p>Total Days</p>
           <b>{formData.working_days}</b>
         </div>
-
         <div className="bg-gray-50 p-3 rounded">
           <p>Travel Allowance</p>
           <b>₹{formData.total_ta}</b>
@@ -191,39 +231,36 @@ export default function PayrollForm({ onSubmit, onCancel, isLoading }) {
           <b>₹{formData.base_salary}</b>
         </div>
 
-        <Input
-          type="number"
-          placeholder="Bonus"
-          value={formData.bonus}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              bonus: Number(e.target.value) || 0,
-            })
-          }
-        />
-
-        <Input
-          type="number"
-          placeholder="Deductions"
-          value={formData.deductions}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              deductions: Number(e.target.value) || 0,
-            })
-          }
-        />
-{/* 
-        <div className="flex justify-between bg-blue-100 p-3 rounded">
-          <span>Gross Salary</span>
-          <b>₹{formData.gross_salary}</b>
+        {/* Bonus */}
+        <div>
+          <Label className="pb-2">Bonus</Label>
+          <Input
+            type="number"
+            value={formData.bonus === 0 ? "" : formData.bonus}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                bonus: e.target.value === "" ? 0 : Number(e.target.value),
+              })
+            }
+          />
         </div>
 
-        <div className="flex justify-between bg-green-100 p-3 rounded">
-          <span>Net Salary</span>
-          <b>₹{formData.net_salary}</b>
-        </div> */}
+        {/* Deductions */}
+        <div>
+          <Label className="pb-2">Deductions</Label>
+          <Input
+            type="number"
+            value={formData.deductions === 0 ? "" : formData.deductions}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                deductions:
+                  e.target.value === "" ? 0 : Number(e.target.value),
+              })
+            }
+          />
+        </div>
       </div>
 
       {/* Buttons */}

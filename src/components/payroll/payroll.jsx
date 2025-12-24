@@ -1,205 +1,351 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
- import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Wallet, DollarSign, TrendingUp } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import PayrollForm from "./PayrollForm";
- 
-export default function Payroll() {
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
+import { Base_Url, Image_Url } from "@/config";
+
+// --------------------- FETCH PAYROLLS ---------------------
+const fetchPayrolls = async ({ queryKey }) => {
+  const [_key, { page, limit, month }] = queryKey;
+  let url = `${Base_Url}api/v1/slips?page=${page}&limit=${limit}`;
+  if (month) {
+    const [year, m] = month.split("-");
+    url += `&month=${m}&year=${year}`;
+  }
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json?.message || "Failed to fetch payrolls");
+  return json.data;
+};
+
+// --------------------- STATUS MODAL COMPONENT ---------------------
+function StatusModal({ payroll, open, onClose }) {
+  const [status, setStatus] = useState(payroll?.status || "Draft");
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: payrolls = [] } = useQuery({
-    queryKey: ['payrolls'],
-   });
+  const handleUpdateStatus = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${Base_Url}api/v1/slips/status/update`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: payroll._id, status }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Failed to update status");
 
-  const { data: employees = [] } = useQuery({
-    queryKey: ['employees'],
-   });
+      toast.success(data?.message || "Status updated successfully");
+      queryClient.invalidateQueries(["payrolls"]);
+      onClose();
+    } catch (err) {
+      toast.error(err.message || "Failed to update status");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const createMutation = useMutation({
-     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payrolls'] });
-      setShowAddDialog(false);
-    },
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Update Payroll Status</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-4">
+          <p className="text-gray-500 text-sm">Select Status</p>
+          <select
+            className="w-full border px-3 py-2 rounded"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="Draft">Draft</option>
+            <option value="Generated">Generated</option>
+          </select>
+
+          <Button
+            onClick={handleUpdateStatus}
+            className=" w-40 bg-green-600 hover:bg-green-700 text-white mx-3"
+            disabled={loading}
+          >
+            {loading ? "Updating..." : "Save Status"}
+          </Button>
+
+          <Button variant="outline" onClick={onClose} className=" w-40 ">
+            Cancel
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// --------------------- MAIN PAYROLL COMPONENT ---------------------
+export default function Payroll() {
+  const queryClient = useQueryClient();
+
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [page, setPage] = useState(1);
+  const [viewPayroll, setViewPayroll] = useState(null);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedPayroll, setSelectedPayroll] = useState(null);
+
+  const limit = 5;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["payrolls", { page, limit, month: selectedMonth || null }],
+    queryFn: fetchPayrolls,
+    keepPreviousData: true,
   });
 
-  const monthPayrolls = payrolls.filter(p => p.month === selectedMonth);
-  const totalGross = monthPayrolls.reduce((sum, p) => sum + (p.gross_salary || 0), 0);
-  const totalNet = monthPayrolls.reduce((sum, p) => sum + (p.net_salary || 0), 0);
-  const totalDeductions = monthPayrolls.reduce((sum, p) => sum + (p.deductions || 0), 0);
+  const payrolls = data?.slips || [];
+  const totalPages = data?.totalPages || 1;
 
   const statusColors = {
-    'Draft': 'bg-gray-100 text-gray-700',
-    'Processed': 'bg-blue-100 text-blue-700',
-    'Paid': 'bg-green-100 text-green-700',
+    Draft: "bg-gray-100 text-gray-700",
+    Generated: "bg-blue-100 text-blue-700",
+    Paid: "bg-green-100 text-green-700",
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Payroll Management</h2>
-          <p className="text-gray-500 mt-1">Process and manage employee salaries</p>
+          <h2 className="text-2xl font-bold">Payroll Management</h2>
+          <p className="text-gray-500">Process and manage employee salaries</p>
         </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="border-[#007BFF] text-[#007BFF] hover:bg-blue-50"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </Button>
-          <Button
-            onClick={() => setShowAddDialog(true)}
-            className="bg-[#007BFF] hover:bg-[#0056b3] shadow-lg"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Generate Payroll
-          </Button>
-        </div>
+
+        <Button onClick={() => setShowAddDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Generate Payroll
+        </Button>
       </div>
 
-      {/* Month Selector */}
-      <Card className="shadow-lg border-none">
-        <CardContent className="p-4">
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-transparent"
-          />
-        </CardContent>
-      </Card>
+      {/* TABLE */} 
+<Card>
+  <CardHeader>
+    <CardTitle>
+      Payroll Records{" "}
+      {selectedMonth &&
+        `- ${format(new Date(selectedMonth + "-01"), "MMMM yyyy")}`}
+    </CardTitle>
+  </CardHeader>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Gross Salary</p>
-                <p className="text-3xl font-bold text-gray-900">₹{totalGross.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">{monthPayrolls.length} employees</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Wallet className="w-6 h-6 text-[#007BFF]" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  <CardContent className="p-0">
+    {isLoading && <div className="p-10 text-center">Loading...</div>}
 
-        <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Net Salary</p>
-                <p className="text-3xl font-bold text-[#00C896]">₹{totalNet.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">after deductions</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-[#00C896]" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Deductions</p>
-                <p className="text-3xl font-bold text-red-600">₹{totalDeductions.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">taxes & other</p>
-              </div>
-              <div className="p-3 bg-red-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    {!isLoading && payrolls.length === 0 && (
+      <div className="p-10 text-center text-gray-500">
+        No payroll records found
       </div>
+    )}
 
-      {/* Payroll List */}
-      <Card className="shadow-lg border-none">
-        <CardHeader className="border-b">
-          <CardTitle>Payroll Records - {format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Base Salary</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">TA</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Bonus</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Deductions</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Net Salary</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {monthPayrolls.map((payroll) => (
-                  <tr key={payroll.id} className="hover:bg-blue-50 transition-colors duration-200">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#007BFF] to-[#0056b3] flex items-center justify-center text-white font-semibold">
-                          {payroll.employee_name?.charAt(0) || 'E'}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{payroll.employee_name}</p>
-                          <p className="text-sm text-gray-500">{payroll.employee_id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-medium">₹{payroll.base_salary?.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-green-600 font-medium">+₹{payroll.total_ta?.toLocaleString() || 0}</td>
-                    <td className="px-6 py-4 text-green-600 font-medium">+₹{payroll.bonus?.toLocaleString() || 0}</td>
-                    <td className="px-6 py-4 text-red-600 font-medium">-₹{payroll.deductions?.toLocaleString() || 0}</td>
-                    <td className="px-6 py-4 font-bold text-[#007BFF] text-lg">₹{payroll.net_salary?.toLocaleString()}</td>
-                    <td className="px-6 py-4">
-                      <Badge className={statusColors[payroll.status]}>
-                        {payroll.status}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {monthPayrolls.length === 0 && (
-              <div className="p-12 text-center">
-                <Wallet className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 text-lg">No payroll records for this month</p>
-                <p className="text-gray-400 text-sm mt-2">Click "Generate Payroll" to create records</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    {!isLoading && payrolls.length > 0 && (
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-6 py-3 text-left whitespace-nowrap">Employee</th>
+              <th className="px-6 py-3 text-left whitespace-nowrap">Month/Year</th>
+              <th className="px-6 py-3 text-right whitespace-nowrap">Bonus</th>
+              <th className="px-6 py-3 pe-5 whitespace-nowrap">Deductions</th>
+              <th className="px-6 py-3 text-right whitespace-nowrap">Net Salary</th>
+              <th className="px-6 py-3 text-center whitespace-nowrap">Status</th>
+              <th className="px-6 py-3 text-center whitespace-nowrap">Actions</th>
+            </tr>
+          </thead>
 
-      {/* Add Dialog */}
+          <tbody className="divide-y">
+            {payrolls.map((p) => (
+              <tr key={p._id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 text-left">
+                  <div className="font-medium">{p.employee?.name}</div>
+                  <div className="text-sm text-gray-500">{p.employee?.email}</div>
+                </td>
+
+                <td className="px-6 py-4 text-left">{p.month}/{p.year}</td>
+
+                <td className="px-6 py-4 text-center font-mono text-green-600">
+                  +₹{p.bonus ?? 0}
+                </td>
+
+                <td className="px-6 py-4 text-center font-mono text-red-600">
+                  -₹{p.deductions ?? 0}
+                </td>
+
+                <td className="px-6 py-4 text-center font-mono font-semibold">
+                  ₹{p.netSalary}
+                </td>
+
+                <td className="px-6 py-4 text-center">
+                  <span
+                    className={`px-3 py-1 text-xs rounded-full ${
+                      statusColors[p.status] || "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </td>
+
+                <td className="px-6 py-4 text-center flex gap-2 justify-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewPayroll(p)}
+                  >
+                    View Details
+                  </Button>
+
+                  <Button className=" bg-green-600 hover:bg-green-700 text-white"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPayroll(p);
+                      setStatusModalOpen(true);
+                    }}
+                  >
+                    Update Status
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+
+    {/* PAGINATION */}
+    <div className="flex justify-between items-center p-4">
+      <Button
+        variant="outline"
+        disabled={page === 1}
+        onClick={() => setPage((p) => p - 1)}
+      >
+        <ChevronLeft className="w-4 h-4 mr-1" />
+        Prev
+      </Button>
+
+      <span>
+        Page {page} of {totalPages}
+      </span>
+
+      <Button
+        variant="outline"
+        disabled={page === totalPages}
+        onClick={() => setPage((p) => p + 1)}
+      >
+        Next
+        <ChevronRight className="w-4 h-4 ml-1" />
+      </Button>
+    </div>
+  </CardContent>
+</Card>
+
+
+      {/* GENERATE PAYROLL DIALOG */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#007BFF]">
-              Generate Payroll
-            </DialogTitle>
+            <DialogTitle>Generate Payroll</DialogTitle>
           </DialogHeader>
-          <PayrollForm
-            employees={employees}
-            onSubmit={(data) => createMutation.mutate(data)}
-            onCancel={() => setShowAddDialog(false)}
-            isLoading={createMutation.isPending}
-          />
+          <PayrollForm onCancel={() => setShowAddDialog(false)} />
         </DialogContent>
       </Dialog>
+
+      {/* VIEW DETAILS DIALOG */}
+      <Dialog open={!!viewPayroll} onOpenChange={() => setViewPayroll(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Payroll Details</DialogTitle>
+          </DialogHeader>
+
+          {viewPayroll && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500 text-sm">Employee</p>
+                <p className="font-medium">
+                  {viewPayroll.employee?.name} ({viewPayroll.employee?.email})
+                </p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Month</p>
+                <p className="font-medium">{viewPayroll.month}/{viewPayroll.year}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Gross Salary</p>
+                <p className="font-medium">₹{viewPayroll.grossSalary}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Bonus</p>
+                <p className="font-medium text-green-600">₹{viewPayroll.bonus ?? 0}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Deductions</p>
+                <p className="font-medium text-red-600">₹{viewPayroll.deductions ?? 0}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Net Salary</p>
+                <p className="font-medium text-blue-600">₹{viewPayroll.netSalary}</p>
+              </div>
+
+              <div>
+                <p className="text-gray-500 text-sm">Status</p>
+                <p className="font-medium">{viewPayroll.status}</p>
+              </div>
+
+              <div className="md:col-span-2">
+                <p className="text-gray-500 text-sm">Other Details</p>
+                <p className="font-medium">{viewPayroll.details || "N/A"}</p>
+              </div>
+
+              {viewPayroll.slipFileUrl && (
+                <div className="md:col-span-2 mt-4">
+                  <a
+                    href={`${Image_Url}${viewPayroll.slipFileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    View Salary Slip
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* STATUS UPDATE MODAL */}
+      {selectedPayroll && (
+        <StatusModal
+          payroll={selectedPayroll}
+          open={statusModalOpen}
+          onClose={() => setStatusModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
