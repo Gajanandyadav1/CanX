@@ -305,7 +305,7 @@ const [activeTab, setActiveTab] = useState("online");
     </p>
 
     {/* CHECK-OUT (only if available) */}
-    {/* {attendanceData.checkOutTime ? (
+     {attendanceData.checkOutTime ? (
       <p>
         Check-out :
         {" "}
@@ -315,7 +315,7 @@ const [activeTab, setActiveTab] = useState("online");
       <p>
         Check-out : —
       </p>
-    )} */}
+    )}  
 
     {/* ALWAYS SHOW (even if 0) */}
     <p>
