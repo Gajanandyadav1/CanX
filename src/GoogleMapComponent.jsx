@@ -299,17 +299,14 @@ const [activeTab, setActiveTab] = useState("online");
       Attendance :  </p>
 
     <p>
-      Check-in :
-      {" "}
-      {new Date(attendanceData.checkInTime).toLocaleString()}
+      Check-in :  {" "}  {new Date(attendanceData.checkInTime).toLocaleString()}
     </p>
 
-    {/* CHECK-OUT (only if available) */}
+     
      {attendanceData.checkOutTime ? (
       <p>
-        Check-out :
-        {" "}
-        {new Date(attendanceData.checkOutTime).toLocaleString()}
+        Check-out :   {" "} 
+          {new Date(attendanceData.checkOutTime).toLocaleString()}
       </p>
     ) : (
       <p>
