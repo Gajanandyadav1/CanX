@@ -18,8 +18,9 @@ import { Base_Url } from "@/config";
 export default function PayrollForm({ onCancel }) {
   /* ================= STATE ================= */
   const [employees, setEmployees] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(1);
+  const [isEmployeeLoading, setIsEmployeeLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     employee_id: "",
@@ -38,19 +39,49 @@ export default function PayrollForm({ onCancel }) {
     net_salary: 0,
     status: "Draft",
   });
-  const LIMIT = 10;
 
-  /* ================= FETCH EMPLOYEES ================= */
-useEffect(() => {
-  fetch(`${Base_Url}api/v1/employees?page=${page}&limit=${LIMIT}`)
-    .then((res) => res.json())
-    .then((json) => {
-      const list = json?.data?.employees || json?.data || [];
-      setEmployees(list);
-    })
-    .catch(() => setEmployees([]));
-}, [page]); // ✅ page dependency
+  /* ================= FETCH ALL EMPLOYEES (HANDLE API PAGINATION) ================= */
+  useEffect(() => {
+    const fetchAllEmployees = async () => {
+      setIsEmployeeLoading(true);
 
+      let allEmployees = [];
+      let page = 1;
+      const limit = 100; // safe limit
+
+      try {
+        while (true) {
+          const res = await fetch(
+            `${Base_Url}api/v1/employees?page=${page}&limit=${limit}`
+          );
+          const json = await res.json();
+
+          const list = json?.data?.employees || json?.data || [];
+
+          allEmployees = [...allEmployees, ...list];
+
+          // 🔥 last page condition
+          if (list.length < limit) break;
+
+          page++;
+        }
+
+        setEmployees(allEmployees);
+      } catch (error) {
+        console.log("Employee fetch error:", error);
+        setEmployees([]);
+      } finally {
+        setIsEmployeeLoading(false);
+      }
+    };
+
+    fetchAllEmployees();
+  }, []);
+
+  /* ================= SEARCH (FULL DATA) ================= */
+  const filteredEmployees = employees.filter((emp) =>
+    emp.name?.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   /* ================= EMPLOYEE CHANGE ================= */
   const handleEmployeeChange = (empId) => {
@@ -122,113 +153,106 @@ useEffect(() => {
   ]);
 
   /* ================= SUBMIT ================= */
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    const payload = {
-      employeeId: formData.employee_id,
-      month: Number(formData.month.split("-")[1]),
-      year: Number(formData.month.split("-")[0]),
-      bonus: formData.bonus,
-      deductions: formData.deductions,
-    };
+    try {
+      const payload = {
+        employeeId: formData.employee_id,
+        month: Number(formData.month.split("-")[1]),
+        year: Number(formData.month.split("-")[0]),
+        bonus: formData.bonus,
+        deductions: formData.deductions,
+      };
 
-    const res = await fetch(
-      "https://api.canxinternational.in/api/v1/slips",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const data = await res.json();
-
-    // ❌ if API failed
-    if (!res.ok) {
-      throw new Error(
-        data?.error?.explanation || data?.message || "Something went wrong"
+      const res = await fetch(
+        "https://api.canxinternational.in/api/v1/slips",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
       );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error?.explanation || data?.message || "Something went wrong"
+        );
+      }
+
+      toast.success(data?.message || "Payroll generated successfully");
+
+      setTimeout(() => {
+        onCancel();
+      }, 1000);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
     }
-
-    // ✅ SUCCESS
-    toast.success(data?.message || "Payroll generated successfully");
-
-    // ✅ 1 sec delay then close
-    setTimeout(() => {
-      onCancel();
-    }, 1000);
-  } catch (error) {
-    // ✅ API ERROR MESSAGE SHOW HERE
-    toast.error(error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   /* ================= UI ================= */
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* TOASTER */}
       <Toaster position="top-right" />
 
-      {/* Employee */}
+      {/* ================= EMPLOYEE ================= */}
       <div className="space-y-2">
         <Label>Employee *</Label>
-        <Select className="w-full"
-  value={formData.employee_id}
-  onValueChange={(value) =>
-    setFormData({ ...formData, employee_id: value })
-  }
-  style={{ width: "100%" }}
->
-  <SelectTrigger className="w-full p-2" onBlur={() => handleEmployeeChange(formData.employee_id)}>
-    <SelectValue placeholder="Select employee" />
-  </SelectTrigger>
 
-  <SelectContent className="w-full">
-    {/* EMPLOYEES */}
-    {employees.map((emp) => (
-      <SelectItem key={emp._id} value={emp._id}>
-        {emp.name}
-      </SelectItem>
-    ))}
+        <Select
+          value={formData.employee_id}
+          onValueChange={(value) =>
+            setFormData({ ...formData, employee_id: value })
+          }
+        >
+          <SelectTrigger
+            className="w-full"
+            onBlur={() => handleEmployeeChange(formData.employee_id)}
+          >
+            <SelectValue placeholder="Select employee" />
+          </SelectTrigger>
 
-    {/* PAGINATION INSIDE */}
-   <div
-  className="flex justify-between items-center px-3 py-2 mt-2 rounded-md"
-  style={{
-    background: "#2563eb", // 🔵 Blue
-    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.5)",
-    color: "#fff",
-  }}
->
-      <button
-        disabled={page === 1}
-        onClick={() => setPage(page - 1)}
-        style={{ fontSize: 12 }}
-      >
-        Prev
-      </button>
+          <SelectContent className="w-full">
+            {/* 🔍 SEARCH */}
+            <div className="p-2 border-b">
+              <Input
+                placeholder={
+                  isEmployeeLoading
+                    ? "Loading employees..."
+                    : "Search employee..."
+                }
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                disabled={isEmployeeLoading}
+              />
+            </div>
 
-      <span style={{ fontSize: 12 }}>Page {page}</span>
-
-      <button
-        disabled={employees.length < LIMIT} // ✅ MAIN LOGIC
-        onClick={() => setPage(page + 1)}
-        style={{ fontSize: 12 }}
-      >
-        Next
-      </button>
-    </div>
-  </SelectContent>
-</Select>
-
+            {/* EMPLOYEE LIST */}
+            {isEmployeeLoading ? (
+              <div className="px-3 py-2 text-sm text-gray-500">
+                Loading employees...
+              </div>
+            ) : filteredEmployees.length > 0 ? (
+              filteredEmployees.map((emp) => (
+                <SelectItem key={emp._id} value={emp._id}>
+                  {emp.name}
+                </SelectItem>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-500">
+                No employee found
+              </div>
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Month */}
+      {/* ================= SALARY MONTH ================= */}
       <div className="space-y-2">
         <Label>Salary Month *</Label>
         <Input
@@ -242,7 +266,7 @@ useEffect(() => {
         />
       </div>
 
-      {/* Meta */}
+      {/* ================= META ================= */}
       <div className="grid grid-cols-2 gap-3 border-t pt-4">
         <div className="bg-gray-50 p-3 rounded">
           <p>Present Days</p>
@@ -262,16 +286,15 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Salary */}
+      {/* ================= SALARY ================= */}
       <div className="border-t pt-4 space-y-3">
         <div className="flex justify-between">
           <span>Base Salary</span>
           <b>₹{formData.base_salary}</b>
         </div>
 
-        {/* Bonus */}
         <div>
-          <Label className="pb-2">Bonus</Label>
+          <Label>Bonus</Label>
           <Input
             type="number"
             value={formData.bonus === 0 ? "" : formData.bonus}
@@ -284,9 +307,8 @@ useEffect(() => {
           />
         </div>
 
-        {/* Deductions */}
         <div>
-          <Label className="pb-2">Deductions</Label>
+          <Label>Deductions</Label>
           <Input
             type="number"
             value={formData.deductions === 0 ? "" : formData.deductions}
@@ -301,7 +323,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Buttons */}
+      {/* ================= BUTTONS ================= */}
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
