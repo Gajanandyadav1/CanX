@@ -194,8 +194,7 @@ const [activeTab, setActiveTab] = useState("online");
   // 👉 Reverse Geocoding (lat,lng → Address)
   const fetchAddress = async (lat, lng, key) => {
     try {
-      const res = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyCUf5l0MvNpqpUB2mb9gxz0EcmlybwrpsA`
+      const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=AIzaSyCUf5l0MvNpqpUB2mb9gxz0EcmlybwrpsA`
       );
 
       const data = await res.json();
@@ -295,7 +294,7 @@ const [activeTab, setActiveTab] = useState("online");
       
       {Object.keys(attendanceData).length > 0 && (
   <div className="mx-3 ps-3">
-    <p className="mt-3 font-semibold text-blue-600">
+    <p className="mt-3 font-semibold text-blue-600 ">
       Attendance :  </p>
 
     <p>
@@ -332,7 +331,7 @@ const [activeTab, setActiveTab] = useState("online");
 
       {/* SELECTED ADDRESS */}
       {activeLocation && (
-        <p className="mt-3 font-semibold text-blue-600  ps-3" >
+        <p className="mt-3 font-semibold text-blue-600  ps-3 "  style={{width:"50%"}} >
           📍 Address: {currentAddress} 
         </p>
       )}
@@ -340,16 +339,11 @@ const [activeTab, setActiveTab] = useState("online");
       {/* CARDS – Only Address Show */}
       {locationData.length > 0 ? (
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-4 mx-4">
-    {locationData.map((item, index) => (
-      <div
-        key={index}
-        onClick={() => handleCardClick(item)}
-        className={`p-4 border-2 rounded cursor-pointer shadow ${
-          activeLocation?.deviceTimestamp === item.deviceTimestamp
-            ? "border-red-500"
-            : "border-blue-500"
-        }`}
-      >
+   
+        {locationData?.map((item, index) => (
+          <div key={index} onClick={() => handleCardClick(item)}   className={`p-4 border-2 rounded cursor-pointer shadow ${
+              activeLocation?.deviceTimestamp === item.deviceTimestamp  ? "border-red-500" : "border-blue-500"  }`}
+          >
         <p>
           <b>Time:</b>{" "}
           {new Date(item.deviceTimestamp).toLocaleString()}

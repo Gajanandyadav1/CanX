@@ -13,11 +13,13 @@ import {
 import { Loader2 } from "lucide-react";
 import { format, getDaysInMonth } from "date-fns";
 import { toast, Toaster } from "sonner";
+import { Base_Url } from "@/config";
 
 export default function PayrollForm({ onCancel }) {
   /* ================= STATE ================= */
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
 
   const [formData, setFormData] = useState({
     employee_id: "",
@@ -36,17 +38,19 @@ export default function PayrollForm({ onCancel }) {
     net_salary: 0,
     status: "Draft",
   });
+  const LIMIT = 10;
 
   /* ================= FETCH EMPLOYEES ================= */
-  useEffect(() => {
-    fetch("https://api.canxinternational.in/api/v1/employees")
-      .then((res) => res.json())
-      .then((json) => {
-        const list = json?.data?.employees || json?.data || [];
-        setEmployees(list);
-      })
-      .catch(() => setEmployees([]));
-  }, []);
+useEffect(() => {
+  fetch(`${Base_Url}api/v1/employees?page=${page}&limit=${LIMIT}`)
+    .then((res) => res.json())
+    .then((json) => {
+      const list = json?.data?.employees || json?.data || [];
+      setEmployees(list);
+    })
+    .catch(() => setEmployees([]));
+}, [page]); // ✅ page dependency
+
 
   /* ================= EMPLOYEE CHANGE ================= */
   const handleEmployeeChange = (empId) => {
@@ -69,7 +73,7 @@ export default function PayrollForm({ onCancel }) {
 
     try {
       const res = await fetch(
-        "https://api.canxinternational.in/api/v1/attendance/month/salary/slip/meta",
+        `${Base_Url}api/v1/attendance/month/salary/slip/meta`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -173,21 +177,55 @@ export default function PayrollForm({ onCancel }) {
       {/* Employee */}
       <div className="space-y-2">
         <Label>Employee *</Label>
-        <Select
-          value={formData.employee_id}
-          onValueChange={handleEmployeeChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select employee" />
-          </SelectTrigger>
-          <SelectContent>
-            {employees.map((emp) => (
-              <SelectItem key={emp._id} value={emp._id}>
-                {emp.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Select className="w-full"
+  value={formData.employee_id}
+  onValueChange={(value) =>
+    setFormData({ ...formData, employee_id: value })
+  }
+  style={{ width: "100%" }}
+>
+  <SelectTrigger className="w-full p-2" onBlur={() => handleEmployeeChange(formData.employee_id)}>
+    <SelectValue placeholder="Select employee" />
+  </SelectTrigger>
+
+  <SelectContent className="w-full">
+    {/* EMPLOYEES */}
+    {employees.map((emp) => (
+      <SelectItem key={emp._id} value={emp._id}>
+        {emp.name}
+      </SelectItem>
+    ))}
+
+    {/* PAGINATION INSIDE */}
+   <div
+  className="flex justify-between items-center px-3 py-2 mt-2 rounded-md"
+  style={{
+    background: "#2563eb", // 🔵 Blue
+    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.5)",
+    color: "#fff",
+  }}
+>
+      <button
+        disabled={page === 1}
+        onClick={() => setPage(page - 1)}
+        style={{ fontSize: 12 }}
+      >
+        Prev
+      </button>
+
+      <span style={{ fontSize: 12 }}>Page {page}</span>
+
+      <button
+        disabled={employees.length < LIMIT} // ✅ MAIN LOGIC
+        onClick={() => setPage(page + 1)}
+        style={{ fontSize: 12 }}
+      >
+        Next
+      </button>
+    </div>
+  </SelectContent>
+</Select>
+
       </div>
 
       {/* Month */}
