@@ -319,8 +319,9 @@ export default function PayrollForm({ onCancel }) {
                   e.target.value === "" ? 0 : Number(e.target.value),
               })
             }
+            
           />
-        </div>
+        </div> 
       </div>
 
       {/* ================= BUTTONS ================= */}
