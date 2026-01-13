@@ -44,11 +44,11 @@ export default function Home() {
         <div>
           <h2 className="text-2xl font-bold">Attendance Tracking</h2>
           <p className="text-gray-500">
-            Attendance Dashboard – {format(new Date(), "dd MMM yyyy")}
+            {/* Attendance Dashboard – {format(new Date(), "dd MMM yyyy")} */}
           </p>
         </div>
 
-        <div className="flex gap-3">
+        {/* <div className="flex gap-3">
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -57,7 +57,7 @@ export default function Home() {
             <Plus className="w-4 h-4 mr-2" />
             Mark Attendance
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* STATS */}
