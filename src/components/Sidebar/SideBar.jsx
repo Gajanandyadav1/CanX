@@ -38,8 +38,8 @@ const navigationItems = [
   { title: "Payroll", url: "/payroll", icon: Wallet },
 { title: "Claims", url: "/claims", icon: ShieldCheck },
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
-  { title: "Reports", url: "/report", icon: BarChart3 },
-  { title: "Settings", url: "/setting", icon: Settings },
+  // { title: "Reports", url: "/report", icon: BarChart3 },
+  // { title: "Settings", url: "/setting", icon: Settings },
    // { title: "Logout", url: "#", icon: LogOut, color: "text-red-500" }
 ];
 
