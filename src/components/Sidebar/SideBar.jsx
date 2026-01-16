@@ -34,12 +34,12 @@ const navigationItems = [
   { title: "Employees", url: "/employee", icon: Users },
   { title: "Departments", url: "/departments", icon: Building2 },
   // { title: "Attendance", url: "/attendense", icon: ClipboardCheck },
-  { title: "Travel Tracking", url: "/travel", icon: Map },
+  // { title: "Travel Tracking", url: "/travel", icon: Map },
   { title: "Payroll", url: "/payroll", icon: Wallet },
 { title: "Claims", url: "/claims", icon: ShieldCheck },
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
   // { title: "Reports", url: "/report", icon: BarChart3 },
-  // { title: "Settings", url: "/setting", icon: Settings },
+  { title: "Settings", url: "/setting", icon: Settings },
    // { title: "Logout", url: "#", icon: LogOut, color: "text-red-500" }
 ];
 
