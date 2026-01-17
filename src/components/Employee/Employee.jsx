@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit, Eye, Building2, Mail, Phone, Calendar } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar"; // ⭐ REAL CALENDAR
+
+import { Plus, Search, Edit, Eye, Building2, Mail, Phone,Loader2  } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +21,9 @@ import { Base_Url, Image_Url } from "@/config";
 import { Navigate, useNavigate } from "react-router-dom";
 import {    
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"; 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Download } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -29,6 +33,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -242,6 +247,58 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
   }
 };
 
+
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const EXPORT_API = "https://api.canxinternational.in/api/v1/employees/export/excel";
+
+
+    const handleExport = async () => {
+    try {
+      setLoading(true);
+
+      let url = EXPORT_API;
+
+      // ✅ Agar dono dates select ki hai
+      if (startDate && endDate) {
+        const start = format(startDate, "yyyy-MM-dd");
+        const end = format(endDate, "yyyy-MM-dd");
+
+        url = `${EXPORT_API}?startDate=${start}&endDate=${end}`;
+      }
+
+      const response = await fetch(url, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      // 🔥 Convert response to blob (Excel file)
+      const blob = await response.blob();
+
+      // 🔽 Download file
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = downloadUrl;
+      a.download = "employees.xlsx";
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      alert("Export failed. Please try again.");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -261,6 +318,113 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
           Add Employee
         </Button>  
       </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         <div className="flex flex-col md:flex-row gap-4 items-center p-4">
+
+      {/* START DATE */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-[220px] justify-start text-left">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {startDate ? format(startDate, "PPP") : "Select Start Date"}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent
+          forceMount
+          side="bottom"
+          align="start"
+          className="p-0 z-[10000] bg-white border shadow-lg"
+        >
+          <Calendar
+            mode="single"
+            selected={startDate}
+            onSelect={setStartDate}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {/* END DATE */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-[220px] justify-start text-left">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {endDate ? format(endDate, "PPP") : "Select End Date"}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent
+          forceMount
+          side="bottom"
+          align="start"
+          className="p-0 z-[10000] bg-white border shadow-lg"
+        >
+          <Calendar
+            mode="single"
+            selected={endDate}
+            onSelect={setEndDate}
+          />
+        </PopoverContent>
+      </Popover>
+
+      {/* EXPORT BUTTON */}
+     <Button
+  onClick={handleExport}
+  disabled={loading}
+  className="bg-blue-600 hover:bg-blue-700 text-white flex gap-2 min-w-[140px] justify-center"
+>
+  {loading ? (
+    <>
+      <Loader2 className="w-4 h-4 animate-spin" />
+      Exporting
+    </>
+  ) : (
+    <>
+      <Download className="w-4 h-4" />
+      Export
+    </>
+  )}
+</Button>
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       {/* Search Bar */}
       <Card className="shadow-lg border-none">
