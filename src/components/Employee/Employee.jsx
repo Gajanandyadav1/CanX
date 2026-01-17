@@ -252,7 +252,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
   const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const EXPORT_API = "https://api.canxinternational.in/api/v1/employees/export/excel";
+  const EXPORT_API = `${Base_Url}api/v1/employees/export/excel`;
 
 
     const handleExport = async () => {
@@ -260,8 +260,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
       setLoading(true);
 
       let url = EXPORT_API;
-
-      // ✅ Agar dono dates select ki hai
+ 
       if (startDate && endDate) {
         const start = format(startDate, "yyyy-MM-dd");
         const end = format(endDate, "yyyy-MM-dd");
@@ -276,11 +275,9 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
       if (!response.ok) {
         throw new Error("Download failed");
       }
-
-      // 🔥 Convert response to blob (Excel file)
+ 
       const blob = await response.blob();
-
-      // 🔽 Download file
+ 
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
 
