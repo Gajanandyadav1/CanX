@@ -6,11 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar"; // ⭐ REAL CALENDAR
-
+import { Calendar } from "@/components/ui/calendar"; 
 import { Plus, Search, Edit, Eye, Building2, Mail, Phone,Loader2  } from "lucide-react";
-import {
-  Dialog,
+import { Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,DialogDescription
@@ -102,8 +100,6 @@ const [currentPage, setCurrentPage] = useState(1);
 
 const limit = 9; 
 const [totalPages, setTotalPages] = useState(1);
- 
-
 
 
 const DepartmentGet = () => {
@@ -140,23 +136,19 @@ const DepartmentGet = () => {
 };
 
 
-// ⭐ Auto fetch on page change + search
-useEffect(() => {
+ useEffect(() => {
   DepartmentGet();
 }, [search, currentPage]);
 
-// ⭐ Listen to “goToFirstPage” event
+ 
 useEffect(() => {
   const goFirst = () => setCurrentPage(1);
-
   window.addEventListener("goToFirstPage", goFirst);
-
   return () => window.removeEventListener("goToFirstPage", goFirst);
 }, []);
 
 
-
-// Search Filter
+ 
 const filteredDepartments = departments.filter((item) =>
   item.name?.toLowerCase().includes(search.toLowerCase())
 );
@@ -164,7 +156,7 @@ const filteredDepartments = departments.filter((item) =>
 
  
   const [selectedStatus, setSelectedStatus] = useState(""); 
-const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORTANT
+const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); 
 
 
  const updateStatus = async () => {
@@ -178,7 +170,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState(""); // 👈 IMPORT
     myHeaders.append("Content-Type", "application/json");
 
     const raw = JSON.stringify({
-      id: selectedEmployeeId,   // 👈 ab yahan correct ID jayegi
+      id: selectedEmployeeId,    
       status: selectedStatus,
     });
 

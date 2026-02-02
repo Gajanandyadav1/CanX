@@ -34,6 +34,7 @@ export default function Login() {
       }
     } catch (error) {
       toast.error("Something went wrong!");
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export default function Login() {
             {/* SHOW / HIDE PASSWORD TOGGLE */}
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+              className="absolute right-4 top-1/3 -translate-y-1/2 cursor-pointer text-gray-500"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
