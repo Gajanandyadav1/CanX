@@ -1,4 +1,4 @@
-import { Base_Url } from "@/config";
+import { Base_Url, Image_Url } from "@/config";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -88,56 +88,59 @@ const Visits = () => {
 
       {/* VISIT CARDS */}
       {visits.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {visits.map((item) => (
-            <div
-              key={item._id}
-              className="bg-white rounded-xl border border-blue-500
-                         shadow-sm hover:shadow-md hover:border-blue-600
-                         transition-all duration-300 p-5"
-            >
-              {/* HEADER */}
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    {item.clientName}
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    {item.employee?.email}
-                  </p>
-                </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {visits?.map((item) => (
+      <div
+        key={item._id}
+        className="bg-white rounded-xl border border-gray-200
+                   shadow hover:shadow-lg transition p-4"
+      >
+        {/* IMAGE */}
+        {item.asset && (
+          <img
+            src={`${Image_Url}${item.asset}`}
+            alt="asset"
+            className="w-full h-40 object-cover rounded-lg mb-4"
+          />
+        )}
 
-                <span className="px-3 py-1 text-xs rounded-full
-                                 bg-blue-100 text-blue-700 font-semibold">
-                  {item.purpose}
-                </span>
-              </div>
+        {/* HEADER */}
+        <h2 className="text-lg font-bold text-gray-800">
+          {item.dealerName}
+        </h2>
 
-              {/* DETAILS */}
-              <div className="space-y-2 text-sm text-gray-700">
-                <p>
-                  <b>Phone:</b> {item.employee?.phone}
-                </p>
+        <p className="text-sm text-gray-600">
+          👤 {item.employee?.name}
+        </p>
 
-                <p>
-                  <b>Payment Mode:</b> {item.paymentMode}
-                </p>
-              </div>
+        <p className="text-xs text-gray-500">
+          📧 {item.employee?.email}
+        </p>
 
-              {/* FOOTER */}
-              <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                <span className="text-lg font-bold text-green-600">
-                  ₹{item.amount}
-                </span>
-
-                <span className="text-xs text-gray-500">
-                  📅 {item.createdAt.slice(0, 10)}
-                </span>
-              </div>
-            </div>
-          ))}
+        {/* DETAILS */}
+        <div className="mt-3 text-sm text-gray-700 space-y-1">
+          <p><b>📞 Phone: </b> {item.employee?.phone}</p>
+          <p><b>🎯 Purpose: </b> {item.purpose}</p>
+          <p><b>💳 Payment:</b> {item.paymentMode?.trim() || " -"}</p>
+          <p><b>📝 Note: </b>{ item.description?.trim() ? item.description : " No description"}</p>
         </div>
-      )}
+
+        {/* FOOTER */}
+        <div className="mt-4 pt-3 border-t flex justify-between items-center">
+          <span className="text-lg font-bold text-green-600">
+             ₹ {item.amount ?? 0}
+</span>
+
+
+          <span className="text-xs text-gray-500">
+            📅 {item.createdAt.slice(0, 10)}
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
 
       {/* PAGINATION */}
       {visits.length > 0 && (
