@@ -172,9 +172,9 @@ const [reason, setReason] = useState("");
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm pt-3">
                     <p><b>Amount:</b> ₹{item.amount}</p>
-                    <p><b>Title:</b> {item.title}</p>
-                    <p><b>Email:</b> {item.employee?.email}</p>
-                    <p><b>Phone:</b> {item.employee?.phone}</p>
+                    <p><b>Title/Reson:</b> {item.title}</p>
+                    {/* <p><b>Email:</b> {item.employee?.email}</p>
+                    <p><b>Phone:</b> {item.employee?.phone}</p> */}
                   </div>
                   <p className="pt-2 text-sm">
                     <b>Description:</b> {item.description}

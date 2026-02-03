@@ -56,13 +56,8 @@ const Visits = () => {
         </select>
 
         {/* DATE FILTER */}
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => {
-            setDate(e.target.value);
-            setPage(1);
-          }}
+        <input  type="date" value={date}  
+        onChange={(e) => {setDate(e.target.value);  setPage(1);   }}
           className="border border-gray-300 rounded-lg px-3 py-2 w-full md:w-48"
         />
 
@@ -105,24 +100,24 @@ const Visits = () => {
         )}
 
         {/* HEADER */}
-        <h2 className="text-lg font-bold text-gray-800">
-          {item.dealerName}
-        </h2>
+        <h3 className="text-lg font-bold text-gray-800">
+         Dealer Name :   {item.dealerName} 
+        </h3>
 
-        <p className="text-sm text-gray-600">
-          👤 {item.employee?.name}
+        <p className="text-sm text-gray-600 pt-2">
+          👤<b>Name : </b> {item.employee?.name}
         </p>
 
-        <p className="text-xs text-gray-500">
-          📧 {item.employee?.email}
-        </p>
+        {/* <p className="text-xs text-gray-500">
+          📧 <b>  Email : </b> {item.employee?.email}
+        </p> */}
 
         {/* DETAILS */}
         <div className="mt-3 text-sm text-gray-700 space-y-1">
-          <p><b>📞 Phone: </b> {item.employee?.phone}</p>
-          <p><b>🎯 Purpose: </b> {item.purpose}</p>
-          <p><b>💳 Payment:</b> {item.paymentMode?.trim() || " -"}</p>
-          <p><b>📝 Note: </b>{ item.description?.trim() ? item.description : " No description"}</p>
+          {/* <p><b>📞 Phone: </b> {item.employee?.phone}</p> */}
+          <p><b>🎯 Purpose : </b> {item.purpose}</p>
+          <p><b>💳 Payment Mode :</b> {item.paymentMode?.trim() || " -"}</p>
+          <p><b>📝 Description : </b>{ item.description?.trim() ? item.description : " No description"}</p>
         </div>
 
         {/* FOOTER */}
@@ -133,7 +128,7 @@ const Visits = () => {
 
 
           <span className="text-xs text-gray-500">
-            📅 {item.createdAt.slice(0, 10)}
+            📅 {item.createdAt}
           </span>
         </div>
       </div>
