@@ -20,7 +20,7 @@ export default function Home() {
     absentEmployees: [],
   });
 
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
 
   const GetData = async () => {
     try {
@@ -76,55 +76,67 @@ export default function Home() {
       </div>
 
       {/* CARD GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
 
-        {activeTab === "present" &&
-          (statsData.presentEmployees.length > 0 ? (
-            statsData.presentEmployees.map((emp) => (
-              <div key={emp._id} onClick={()=>{Navigate(`/google/${emp.employee._id}`)}}>
-              <EmployeeCard
-                key={emp._id}
-                name={emp.employee.name}
-                phone={emp.employee.phone}
-                status="Present"
-                color="green"
-                />
-                </div>
-            ))
-          ) : (
-            <NoData />
-          ))}
+{/* PRESENT */}
+{activeTab === "present" &&
+  statsData?.presentEmployees?.length > 0 &&
+  statsData.presentEmployees.map((emp) => (
+    <div
+      key={emp._id}
+      onClick={() => navigate(`/google/${emp.employee._id}`)}
+      style={{ cursor: "pointer" }}
+    >
+      <EmployeeCard
+        name={emp.employee.name}
+        phone={emp.employee.phone}
+        status="Present"
+        color="green"
+      />
+    </div>
+  ))
+}
 
-        {activeTab === "leave" &&
-          (statsData.leaveEmployees.length > 0 ? (
-            statsData.leaveEmployees.map((emp) => (
-              <EmployeeCard
-                key={emp._id}
-                name={emp.employee.name}
-                phone={emp.employee.phone}
-                status="On Leave"
-                color="blue"
-              />
-            ))
-          ) : (
-            <NoData />
-          ))}
+{/* LEAVE */}
+{activeTab === "leave" &&
+  statsData?.leaveEmployees?.length > 0 &&
+  statsData.leaveEmployees.map((emp) => (
+    <div
+      key={emp._id}
+      onClick={() => navigate(`/google/${emp.employee._id}`)}
+      style={{ cursor: "pointer" }}
+    >
+      <EmployeeCard
+        name={emp.employee.name}
+        phone={emp.employee.phone}
+        status="On Leave"
+        color="blue"
+      />
+    </div>
+  ))
+}
 
-        {activeTab === "absent" &&
-          (statsData.absentEmployees.length > 0 ? (
-            statsData.absentEmployees.map((emp) => (
-              <EmployeeCard
-                key={emp._id}
-                name={emp.name}
-                phone={emp.phone}
-                status="Absent"
-                color="red"
-              />
-            ))
-          ) : (
-            <NoData />
-          ))}
-      </div>
+{/* ABSENT */}
+{activeTab === "absent" &&
+  statsData?.absentEmployees?.length > 0 &&
+  statsData.absentEmployees.map((emp) => (
+    <div
+      key={emp._id}
+        onClick={() => navigate(`/google/${emp._id}`)}
+      style={{ cursor: "pointer" }}
+    >
+      <EmployeeCard
+        name={emp.name}
+        phone={emp.phone}
+        status="Absent"
+        color="red"
+      />
+    </div>
+  ))
+}
+
+</div>
+
 
       {/* DIALOG */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
