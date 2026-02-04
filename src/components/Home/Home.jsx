@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Base_Url } from "@/config";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("present");
@@ -18,6 +19,8 @@ export default function Home() {
     leaveEmployees: [],
     absentEmployees: [],
   });
+
+  const Navigate = useNavigate();
 
   const GetData = async () => {
     try {
@@ -78,13 +81,15 @@ export default function Home() {
         {activeTab === "present" &&
           (statsData.presentEmployees.length > 0 ? (
             statsData.presentEmployees.map((emp) => (
+              <div key={emp._id} onClick={()=>{Navigate(`/google/${emp.employee._id}`)}}>
               <EmployeeCard
                 key={emp._id}
                 name={emp.employee.name}
                 phone={emp.employee.phone}
                 status="Present"
                 color="green"
-              />
+                />
+                </div>
             ))
           ) : (
             <NoData />

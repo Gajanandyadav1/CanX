@@ -156,12 +156,11 @@ const [activeTab, setActiveTab] = useState("online");
 
   console.log("Attendance Data:", attendanceData);
 
-  
 
   const getOfflineApi = async () => {
     try {
       const res = await fetch(
-        `https://api.canxinternational.in/api/v1/offline/admin/${id}?date=${selectedDate}`
+        `${Base_Url}api/v1/offline/admin/${id}?date=${selectedDate}`
       );
       const result = await res.json();
 
