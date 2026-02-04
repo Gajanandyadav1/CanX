@@ -10,6 +10,7 @@ const Visits = () => {
   // 🔹 filters
   const [purpose, setPurpose] = useState("");
   const [date, setDate] = useState("");
+const [openImg, setOpenImg] = useState(null);
 
   const { employeeId } = useParams();
 
@@ -90,14 +91,17 @@ const Visits = () => {
         className="bg-white rounded-xl border border-gray-200
                    shadow hover:shadow-lg transition p-4"
       >
-        {/* IMAGE */}
-        {item.asset && (
-          <img
-            src={`${Image_Url}${item.asset}`}
-            alt="asset"
-            className="w-full h-40 object-cover rounded-lg mb-4"
-          />
-        )}
+        {/* IMAGE */} 
+    {item.asset && (
+  <img
+    src={`${Image_Url}${item.asset}`}
+    alt="asset"
+    className="w-full h-40 object-cover rounded-lg mb-4 cursor-pointer"
+    onClick={() => setOpenImg(`${Image_Url}${item.asset}`)}
+  />
+)}
+
+
 
         {/* HEADER */}
         <h3 className="text-lg font-bold text-gray-800">
@@ -135,6 +139,31 @@ const Visits = () => {
     ))}
   </div>
 )}
+
+
+{openImg && (
+  <div
+    className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50"
+    onClick={() => setOpenImg(null)}
+  >
+    {/* close button */}
+    <button
+      className="absolute top-5 right-5 text-white text-3xl font-bold"
+      onClick={() => setOpenImg(null)}
+    >
+      ✕
+    </button>
+
+    {/* full image */}
+    <img
+      src={openImg}
+      alt="full"
+      className="max-w-[100%] max-h-[100%] rounded-lg shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+    />
+  </div>
+)}
+
 
 
       {/* PAGINATION */}
