@@ -91,6 +91,7 @@ useEffect(() => {
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 const formatAddress = (fullAddress) => {
   if (!fullAddress) return "";
 
@@ -119,10 +120,9 @@ useEffect(() => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-<div className="bg-white rounded-xl shadow px-4 py-3 mb-6">
+{/* <div className="bg-white rounded-xl shadow px-4 py-3 mb-6">
   <div className="flex flex-col sm:flex-row sm:items-center  gap-3 text-sm">
-
-    {/* CHECK-IN TIME */}
+ 
     <div className="flex items-center gap-2 text-gray-700">
       ⏰ <b>Check-in:</b>{" "}
       {attendanceData?.checkInTime
@@ -132,8 +132,7 @@ useEffect(() => {
           })
         : "--"}
     </div>
-  
-    {/* SHORT LOCATION */}
+   
   <div className="flex items-center gap-2 text-gray-700  ">
   📍 <b>Location:</b>
   <span className="truncate">
@@ -144,7 +143,7 @@ useEffect(() => {
 </div>
  
   </div>
-</div>
+</div> */}
  
       {/* 🔍 FILTER SECTION */}
       <div className="    rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4">
