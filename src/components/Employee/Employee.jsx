@@ -518,16 +518,20 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
                   >
                     Update Status
                   </Badge>
-                <Badge
+                 
+      <Badge
   className={`${statusColors[employee.status]} border px-3 py-1 cursor-pointer`}
   onClick={() => {
-    
-  navigate(`/visit/${employee._id}`);
-}}
-
+    navigate(`/visit/${employee._id}`, {
+      state: {
+        checkInTime: employee.checkInTime
+      }
+    });
+  }}
 >
   View Visits
 </Badge>
+
 
 
              
@@ -560,6 +564,11 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
           >
             Check Attendance
           </Button>
+
+           <Badge className={`${statusColors[employee.status]} border px-3 py-1`}           
+                  onClick={() => navigate(`/km_visit/${employee._id}`)} >
+                  Visit/Km  
+                  </Badge>
 
            <Button  
                       variant="outline"

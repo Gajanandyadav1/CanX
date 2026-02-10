@@ -1,11 +1,13 @@
 import { Base_Url, Image_Url } from "@/config";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
+import { useLocation, useParams } from "react-router-dom";
 
 const Visits = () => {
   const [visits, setVisits] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+const [addressMap, setAddressMap] = useState({});
 
   // 🔹 filters
   const [purpose, setPurpose] = useState("");
@@ -13,6 +15,7 @@ const Visits = () => {
 const [openImg, setOpenImg] = useState(null);
 
   const { employeeId } = useParams();
+const [attendanceData, setAttendanceData] = useState({});
 
   // -------- GET VISITS API --------
   const getVisits = async () => {
@@ -32,13 +35,117 @@ const [openImg, setOpenImg] = useState(null);
     }
   };
 
+
+
+
+const today = new Date().toISOString().split("T")[0];
+
+const fetchAttendance = async () => {
+  try {
+    const response = await fetch(
+      `${Base_Url}api/v1/attendance/admin/employee/${employeeId}?date=${today}`
+    );
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      setAttendanceData(result.data);
+      console.log("Attendance Data:", result.data);
+    } else {
+      setAttendanceData({});
+    }
+  } catch (error) {
+    console.log("Attendance Error:", error);
+  }
+};
+
+
+
+
+
+useEffect(() => {
+  if (employeeId) {
+    fetchAttendance();
+  }
+}, [employeeId, date]);
+
+
   useEffect(() => {
     getVisits();
   }, [page, purpose, date]);
 
+
+
+  const getAddressFromLatLng = async (lat, lng, visitId) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    const data = await res.json();
+
+    setAddressMap((prev) => ({
+      ...prev,
+      [visitId]: data.display_name || "Address not found",
+    }));
+  } catch (err) {
+    console.log("Address error:", err);
+  }
+};
+
+const formatAddress = (fullAddress) => {
+  if (!fullAddress) return "";
+
+  return fullAddress
+    .split(",")
+    .filter(
+      (part) =>
+        !/\d{6}/.test(part) && // ❌ remove pincode (6 digit)
+        part.toLowerCase() !== "india" // ❌ remove country
+    )
+    .slice(0, 3) // ✅ sirf main 2–3 parts
+    .join(", ")
+    .trim();
+};
+
+
+useEffect(() => {
+  visits.forEach((item) => {
+    if (item.latitude && item.longitude && !addressMap[item._id]) {
+      getAddressFromLatLng(item.latitude, item.longitude, item._id);
+    }
+  });
+}, [visits]);
+
+
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+<div className="bg-white rounded-xl shadow px-4 py-3 mb-6">
+  <div className="flex flex-col sm:flex-row sm:items-center  gap-3 text-sm">
 
+    {/* CHECK-IN TIME */}
+    <div className="flex items-center gap-2 text-gray-700">
+      ⏰ <b>Check-in:</b>{" "}
+      {attendanceData?.checkInTime
+        ? new Date(attendanceData.checkInTime).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "--"}
+    </div>
+  
+    {/* SHORT LOCATION */}
+  <div className="flex items-center gap-2 text-gray-700  ">
+  📍 <b>Location:</b>
+  <span className="truncate">
+    {visits[0]?._id && addressMap[visits[0]._id]
+      ? formatAddress(addressMap[visits[0]._id])
+      : "Loading..."}
+  </span>
+</div>
+ 
+  </div>
+</div>
+ 
       {/* 🔍 FILTER SECTION */}
       <div className="    rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4">
 
@@ -84,60 +191,67 @@ const [openImg, setOpenImg] = useState(null);
 
       {/* VISIT CARDS */}
       {visits.length > 0 && (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {visits?.map((item) => (
-      <div
-        key={item._id}
-        className="bg-white rounded-xl border border-gray-200
-                   shadow hover:shadow-lg transition p-4"
-      >
-        {/* IMAGE */} 
-    {item.asset && (
-  <img
-    src={`${Image_Url}${item.asset}`}
-    alt="asset"
-    className="w-full h-40 object-cover rounded-lg mb-4 cursor-pointer"
-    onClick={() => setOpenImg(`${Image_Url}${item.asset}`)}
-  />
-)}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {visits?.map((item) => (
+    <div
+      key={item._id}
+      className="relative bg-white rounded-xl border border-gray-200
+                 shadow hover:shadow-lg transition p-4"
+    >
+      {/* ⭐ DISTANCE BADGE */}
+      {attendanceData?.totalDistance !== undefined && (
+        <div className="absolute top-3 right-3 bg-blue-50 text-blue-700
+                        text-xs font-semibold px-2 py-1 rounded-full border">
+          {Number(attendanceData.totalDistance).toFixed(1)} KM
+        </div>
+      )}
 
+      {/* IMAGE */}
+      {item.asset && (
+        <img
+          src={`${Image_Url}${item.asset}`}
+          alt="asset"
+          className="w-full h-40 object-cover rounded-lg mb-4 cursor-pointer"
+          onClick={() => setOpenImg(`${Image_Url}${item.asset}`)}
+        />
+      )}
 
+      {/* HEADER */}
+      <h3 className="text-lg font-bold text-gray-800">
+        Dealer Name : {item.dealerName}
+      </h3>
 
-        {/* HEADER */}
-        <h3 className="text-lg font-bold text-gray-800">
-         Dealer Name :   {item.dealerName} 
-        </h3>
+      <p className="text-sm text-gray-600 pt-2">
+        👤 <b>Name :</b> {item.employee?.name}
+      </p>
 
-        <p className="text-sm text-gray-600 pt-2">
-          👤<b>Name : </b> {item.employee?.name}
+      {/* DETAILS */}
+      <div className="mt-3 text-sm text-gray-700 space-y-1">
+        <p><b>🎯 Purpose :</b> {item.purpose}</p>
+        <p><b>💳 Payment Mode :</b> {item.paymentMode?.trim() || "-"}</p>
+        <p>
+          <b>📝 Description :</b>{" "}
+          {item.description?.trim()
+            ? item.description
+            : "No description"}
         </p>
-
-        {/* <p className="text-xs text-gray-500">
-          📧 <b>  Email : </b> {item.employee?.email}
-        </p> */}
-
-        {/* DETAILS */}
-        <div className="mt-3 text-sm text-gray-700 space-y-1">
-          {/* <p><b>📞 Phone: </b> {item.employee?.phone}</p> */}
-          <p><b>🎯 Purpose : </b> {item.purpose}</p>
-          <p><b>💳 Payment Mode :</b> {item.paymentMode?.trim() || " -"}</p>
-          <p><b>📝 Description : </b>{ item.description?.trim() ? item.description : " No description"}</p>
-        </div>
-
-        {/* FOOTER */}
-        <div className="mt-4 pt-3 border-t flex justify-between items-center">
-          <span className="text-lg font-bold text-green-600">
-             ₹ {item.amount ?? 0}
-</span>
-
-
-          <span className="text-xs text-gray-500">
-            📅 {item.createdAt}
-          </span>
-        </div>
       </div>
-    ))}
-  </div>
+
+      {/* FOOTER */}
+      <div className="mt-4 pt-3 border-t flex justify-between items-center">
+        <span className="text-lg font-bold text-green-600">
+          ₹ {item.amount ?? 0}
+        </span>
+
+        <span className="text-xs text-gray-500">
+          📅 {item.createdAt}
+        </span>
+      </div>
+    </div>
+  ))}
+</div>
+
+
 )}
 
 

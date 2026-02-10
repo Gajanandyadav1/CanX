@@ -40,6 +40,7 @@ const navigationItems = [
   { title: "Leave Management", url: "/leave", icon: CalendarClock },
   // { title: "Reports", url: "/report", icon: BarChart3 },
   { title: "Settings", url: "/setting", icon: Settings },
+  { title: "Km Visits", url: "/km_visit", icon: BarChart3 },
    // { title: "Logout", url: "#", icon: LogOut, color: "text-red-500" }
 ];
 
