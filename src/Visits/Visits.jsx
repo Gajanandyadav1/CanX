@@ -223,6 +223,7 @@ useEffect(() => {
       <p className="text-sm text-gray-600 pt-2">
         👤 <b>Name :</b> {item.employee?.name}
       </p>
+      
 
       {/* DETAILS */}
       <div className="mt-3 text-sm text-gray-700 space-y-1">
@@ -242,9 +243,10 @@ useEffect(() => {
           ₹ {item.amount ?? 0}
         </span>
 
+
        <span className="text-xs text-gray-500">
-  📅 {new Date(item.createdAt).toLocaleString("en-IN")}
-</span>
+   📅 {new Date(item.createdAt).toLocaleString("en-IN")}
+            </span>
       </div>
     </div>
   ))}
