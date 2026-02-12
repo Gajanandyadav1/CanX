@@ -242,9 +242,9 @@ useEffect(() => {
           ₹ {item.amount ?? 0}
         </span>
 
-        <span className="text-xs text-gray-500">
-          📅 {item.createdAt}
-        </span>
+       <span className="text-xs text-gray-500">
+  📅 {new Date(item.createdAt).toLocaleString("en-IN")}
+</span>
       </div>
     </div>
   ))}

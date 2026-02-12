@@ -345,7 +345,9 @@ const [activeTab, setActiveTab] = useState("online");
           >
         <p>
           <b>Time:</b>{" "}
-          {new Date(item.deviceTimestamp).toLocaleString()}
+        {new Date(item.deviceTimestamp).toLocaleString("en-IN", {
+  timeZone: "Asia/Kolkata",
+})}
         </p>
 
         <p>
