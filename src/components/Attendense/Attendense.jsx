@@ -13,42 +13,41 @@ import { useParams } from "react-router-dom";
 import { Base_Url } from "@/config";
 
 export default function Attendance() {
-  const [selectedDate, setSelectedDate] = useState(null); // 👉 Important
+  const [selectedDate, setSelectedDate] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const queryClient = useQueryClient();
   const { id } = useParams();
 
   // ---------------------- API CALL ----------------------
-// eslint-disable-next-line no-unused-vars
-const { data: attendanceData = [], isLoading } = useQuery({
-  queryKey: ["attendance", id, selectedDate], // 🔥 date added here
-  queryFn: async () => {
-    const year = selectedDate
-      ? new Date(selectedDate).getFullYear()
-      : new Date().getFullYear();
+  // eslint-disable-next-line no-unused-vars
+  const { data: attendanceData = { records: [], totalDistance: 0 }, isLoading } = useQuery({
+    queryKey: ["attendance", id, selectedDate],
+    queryFn: async () => {
+      const year = selectedDate
+        ? new Date(selectedDate).getFullYear()
+        : new Date().getFullYear();
 
-    const month = selectedDate
-      ? new Date(selectedDate).getMonth() + 1
-      : new Date().getMonth() + 1;
+      const month = selectedDate
+        ? new Date(selectedDate).getMonth() + 1
+        : new Date().getMonth() + 1;
 
-    const res = await fetch(
-      `${Base_Url}api/v1/attendance/month/admin/employee/${id}?year=${year}&month=${month}`
-    );
-
-    const json = await res.json();
-    return json.data;
-  },
-});
-
-  // ---------------------- FILTER ----------------------
-const filteredAttendance =
-  selectedDate === null
-    ? attendanceData
-    : attendanceData.filter(
-        (item) =>
-          new Date(item.date).getMonth() === new Date(selectedDate).getMonth()
+      const res = await fetch(
+        `${Base_Url}api/v1/attendance/month/admin/employee/${id}?year=${year}&month=${month}`
       );
 
+      const json = await res.json();
+      return json.data || { records: [], totalDistance: 0 };
+    },
+  });
+
+  // ---------------------- FILTER ----------------------
+  const filteredAttendance =
+    selectedDate === null
+      ? attendanceData.records
+      : attendanceData.records.filter(
+          (item) =>
+            new Date(item.date).getMonth() === new Date(selectedDate).getMonth()
+        );
 
   // ---------------------- MUTATION ----------------------
   const createMutation = useMutation({
@@ -71,7 +70,7 @@ const filteredAttendance =
           <h2 className="text-2xl font-bold text-gray-900">Attendance Tracking</h2>
         </div>
 
-        <div className="flex gap-3 demo">
+        {/* <div className="flex gap-3 demo">
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
             Export
@@ -80,26 +79,36 @@ const filteredAttendance =
           <Button onClick={() => setShowAddDialog(true)} className="bg-blue-600 text-white">
             <Plus className="w-4 h-4 mr-2" /> Mark Attendance
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Stats */}
-     
-      
-
-      {/* Calendar */}
       <Card>
         <CardContent className="ps-4">
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <Card className="border-l-4 border-green-500 shadow-lg">
-          <CardContent className="p-2 px-4">
-            <p className="text-sm text-gray-600">Present</p>
-            <p className="text-3xl font-bold text-green-600">{stats.present}</p>
-          </CardContent>
-        </Card>
-       
-      
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+
+            {/* Present */}
+            <Card className="border-l-4 border-green-500 shadow-lg">
+              <CardContent className="p-2 px-4">
+                <p className="text-sm text-gray-600">Present</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {stats.present}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Total Distance */}
+            <Card className="border-l-4 border-blue-500 shadow-lg">
+              <CardContent className="p-2 px-4">
+                <p className="text-sm text-gray-600">Total Distance</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {attendanceData.totalDistance} km
+                </p>
+              </CardContent>
+            </Card>
+
+          </div>
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline">
@@ -117,79 +126,77 @@ const filteredAttendance =
 
       {/* Attendance List */}
       <Card>
-  <CardHeader>
-    <CardTitle className="pt-2">
-      {selectedDate
-        ? `Attendance - ${format(selectedDate, "dd MMM yyyy")}`
-        : "All Attendance Records"}
-    </CardTitle>
-  </CardHeader>
-  
+        <CardHeader>
+          <CardTitle className="pt-2">
+            {selectedDate
+              ? `Attendance - ${format(selectedDate, "dd MMM yyyy")}`
+              : "All Attendance Records"}
+          </CardTitle>
+        </CardHeader>
 
-  <CardContent className="p-4">
-    {filteredAttendance.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredAttendance?.map((record) => (
-          <Card
-            key={record._id}
-            className="p-4 shadow hover:shadow-lg transition-all border rounded-lg"
-          >
-            <CardContent className="space-y-3 p-0">
+        <CardContent className="p-4">
+          {filteredAttendance?.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {filteredAttendance?.map((record) => (
+                <Card
+                  key={record._id}
+                  className="p-4 shadow hover:shadow-lg transition-all border rounded-lg"
+                >
+                  <CardContent className="space-y-3 p-0">
 
-              {/* Employee Name */}
-              <h3 className="font-bold text-lg text-gray-800">
-                {record.employee?.name}
-              </h3>
+                    {/* Employee Name */}
+                    <h3 className="font-bold text-lg text-gray-800">
+                      {record.employee?.name}
+                    </h3>
 
-              {/* Check In */}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <span>
-                  <strong>Check In:</strong>{" "}
-                  {record.checkInTime
-                    ? format(new Date(record.checkInTime), "hh:mm a")
-                    : "Not Checked In"}
-                </span>
-              </div>
+                    {/* Check In */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4 text-blue-500" />
+                      <span>
+                        <strong>Check In:</strong>{" "}
+                        {record.checkInTime
+                          ? format(new Date(record.checkInTime), "hh:mm a")
+                          : "Not Checked In"}
+                      </span>
+                    </div>
 
-              {/* Check Out */}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="w-4 h-4 text-red-500" />
-                <span>
-                  <strong>Check Out:</strong>{" "}
-                  {record.checkOutTime
-                    ? format(new Date(record.checkOutTime), "hh:mm a")
-                    : "Not Checked Out"}
-                </span>
-              </div>
-              {/* Date   */}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-      <Clock className="w-4 h-4 text-red-500" />
-      <span>
-        <strong>Date:</strong> {new Date(record.date).toLocaleDateString()}
-      </span>
-    </div>
+                    {/* Check Out */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4 text-red-500" />
+                      <span>
+                        <strong>Check Out:</strong>{" "}
+                        {record.checkOutTime
+                          ? format(new Date(record.checkOutTime), "hh:mm a")
+                          : "Not Checked Out"}
+                      </span>
+                    </div>
 
+                    {/* Date */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4 text-red-500" />
+                      <span>
+                        <strong>Date:</strong>{" "}
+                        {new Date(record.date).toLocaleDateString()}
+                      </span>
+                    </div>
 
-              {/* Distance */}
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-semibold">Distance:</span> {record.totalDistance} km
-              </div>
+                    {/* Distance */}
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="font-semibold">Distance:</span>{" "}
+                      {record.totalDistance} km
+                    </div>
 
-              {/* Status Badge */}
-              
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <div className="p-12 text-center text-gray-500">
-        No attendance found
-      </div>
-    )}
-  </CardContent>
-</Card>
-
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center text-gray-500">
+              No attendance found
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Dialog Form */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
