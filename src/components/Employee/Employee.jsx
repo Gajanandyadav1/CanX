@@ -460,21 +460,28 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
               {/* PROFILE IMAGE */}
               <div className="absolute -bottom-12 left-6">
-                <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white">
-                  {employee.profile ? (
-                    <img
-                      src={`${Image_Url}${employee.profile}`}
-                      alt={employee.name}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-3xl font-bold text-[#007BFF]">
-                      {employee.name?.charAt(0) || "E"}
-                    </span>
-                  )}
+             <div className="relative w-24 h-24">
+  <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white overflow-hidden">
+    
+    {employee.profile ? (
+      <img
+        src={`${Image_Url}${employee.profile}`}
+        alt={employee.name}
+        className="w-full h-full object-cover"
+      />
+    ) : (
+      <span className="text-3xl font-bold text-[#007BFF]">
+        {employee.name?.charAt(0) || "E"}
+      </span>
+    )}
 
-                  
-                </div>
+  </div>
+
+  {/* Edit Icon */}
+  <div className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full cursor-pointer">
+    ✏️
+  </div>
+</div>
               </div>
               
             </div>
