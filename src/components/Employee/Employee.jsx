@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
  import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,16 +32,18 @@ import {
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { FaCamera } from "react-icons/fa";
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null); 
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const queryClient = useQueryClient();
  const [changePassOpen, setChangePassOpen] = useState(false);
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+
 
 const [showNewPass, setShowNewPass] = useState(false);
 const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -91,7 +93,7 @@ const [error, setError] = useState(false);
     'Inactive': 'bg-red-100 text-red-700 border-red-200',
   };
 
-
+ 
   const navigate = useNavigate(); 
 const [departments, setDepartments] = useState([]);
 const [search, setSearch] = useState("");
@@ -200,6 +202,76 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
     toast.error("Something went wrong");
   }
 };
+
+
+
+const [showModal, setShowModal] = useState(false);
+const [file, setFile] = useState(null);
+const fileRef = useRef(null);
+ const [selectedId, setSelectedId] = useState(null);
+const [preview, setPreview] = useState(null);
+  // modal open
+ const openFile = (id) => {
+  setSelectedId(id);   // id store karo
+  setShowModal(true);
+};
+ 
+
+  const handleFileChange = (e) => {
+  const selectedFile = e.target.files[0];
+
+  if (selectedFile) {
+    setFile(selectedFile);
+
+    const imagePreview = URL.createObjectURL(selectedFile);
+    setPreview(imagePreview);
+  }
+};
+
+const updateProfile = async () => {
+
+  if (!file) {
+    toast.error("Please select image");
+    return;
+  }
+
+  const formdata = new FormData();
+  formdata.append("id", selectedId);
+  formdata.append("profile", file);
+
+  try {
+
+    const response = await fetch(
+      `${Base_Url}api/v1/employees/profile/update`,
+      {
+        method: "PUT",
+        body: formdata
+      }
+    );
+
+    const result = await response.json();
+
+    if(result.success){
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
+    }
+
+    // refresh data
+    DepartmentGet();
+
+    // modal close after 2 sec
+    setTimeout(() => {
+      setShowModal(false);
+      setFile(null);
+      setPreview(null);
+    },2000);
+
+  } catch (error) {
+    toast.error("Upload failed");
+  }
+};
+
   useEffect(() => {
     const refreshHandler = () => {
       DepartmentGet();
@@ -228,9 +300,11 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
     if (result.success === true) {
       toast.success(result.message);
+      DepartmentGet();
       setChangePassOpen(false);
       setNewPass("");
       setConfirmPass("");
+
     } else {
       toast.error(result.message || "Failed to update password");
     }
@@ -313,15 +387,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
 
 
-
-
-
-
-
-
-
-
-
+ 
 
 
 
@@ -399,18 +465,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 
 
@@ -460,7 +515,7 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
               {/* PROFILE IMAGE */}
               <div className="absolute -bottom-12 left-6">
-             <div className="relative w-24 h-24">
+             {/* <div className="relative w-24 h-24">
   <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white overflow-hidden">
     
     {employee.profile ? (
@@ -476,12 +531,50 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
     )}
 
   </div>
-
-  {/* Edit Icon */}
+ 
   <div className="absolute bottom-0 right-0 bg-blue-500 text-white p-1 rounded-full cursor-pointer">
     ✏️
   </div>
+</div> */}
+
+ <div className="relative w-24 h-24 group">
+
+      
+      <div className="absolute inset-0 rounded-full border-3 border-blue-500 scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-115 transition-all duration-500"></div>
+
+      <div className="w-24 h-24 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-white overflow-hidden relative z-10">
+
+        {employee.profile ? (
+          <img
+            src={`${Image_Url}${employee.profile}`}
+            alt={employee.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-3xl font-bold text-[#007BFF]">
+            {employee.name?.charAt(0) || "E"}
+          </span>
+        )}
+
+      </div>
+
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileRef}
+        accept="image/*"
+        className="hidden"
+      />
+
+      {/* Edit Icon */}
+     <div
+  onClick={() => openFile(employee._id)}
+  className="absolute bottom-0 right-0 bg-green-500 text-white p-1 rounded-full cursor-pointer z-20"
+>
+  <FaCamera size={14} />
 </div>
+
+    </div>
               </div>
               
             </div>
@@ -827,6 +920,82 @@ const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
     </div>
   </DialogContent>
 </Dialog>
+
+
+
+
+
+
+
+
+{showModal && (
+<div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+
+<div className="bg-white p-6 rounded-lg w-96">
+
+<h2 className="text-lg font-semibold mb-4">
+Update Profile Image
+</h2>
+
+<label
+htmlFor="imageUpload"
+className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center block cursor-pointer"
+>
+
+{preview ? (
+
+<img
+src={preview}
+className="w-40 h-40 object-cover mx-auto rounded-lg"
+/>
+
+) : (
+
+<div className="space-y-2">
+
+<p className="text-gray-600">
+Select Image
+</p>
+
+<p className="text-xs text-gray-400">
+Supports: JPG, JPEG, PNG
+</p>
+
+</div>
+
+)}
+
+</label>
+
+<input
+id="imageUpload"
+type="file"
+accept="image/*"
+onChange={handleFileChange}
+className="hidden"
+/>
+
+<div className="flex gap-3 mt-5">
+
+<button
+onClick={updateProfile}
+className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+>
+Upload
+</button>
+
+<button
+onClick={() => setShowModal(false)}
+className="bg-gray-400 text-white px-4 py-2 rounded w-full"
+>
+Cancel
+</button>
+
+</div>
+
+</div>
+</div>
+)}
 
     </div>
   );
