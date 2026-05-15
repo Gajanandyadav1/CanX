@@ -1,4 +1,4 @@
- import React from "react";
+  import React from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./components/Home/Home";
 import Employees from "./components/Employee/Employee";
